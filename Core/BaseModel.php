@@ -85,7 +85,7 @@ class BaseModel {
         $this->ENTITY_NAME = $entity_name;
         
         $this->db = Util::loadCls('Engine\MySQLi');
-        $this->db->connect(DB_HOST, DB_USER, DB_PSWD, DB_NAME, DB_PORT, 'utf-8', 'false');
+        $this->db->connect(DB_HOST, DB_USER, DB_PSWD, DB_NAME, DB_PORT, CHARSET, 'false');
         
         $this->entity = Util::loadCls('Entity\\' . $this->ENTITY_NAME, $id);
         

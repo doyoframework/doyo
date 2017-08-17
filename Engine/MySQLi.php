@@ -52,6 +52,8 @@ class MySQLi {
         
         if ($this->_charset) {
             $this->mysql->set_charset($this->_charset);
+            $charset = str_replace('-', '', $this->_charset);
+            $this->mysql->query("set names `{$charset}`");
         }
     
     }
