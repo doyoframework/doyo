@@ -38,8 +38,8 @@ class HTTPDispatcher {
             $this->compile = $this->ctrlPath . '/templates_c';
         }
         
-        $ctrlName = "Index";
-        $methodName = "main";
+        $ctrlName = 'Index';
+        $methodName = 'main';
         
         $params = array ();
         
@@ -53,7 +53,7 @@ class HTTPDispatcher {
             
             if ($p) {
                 
-                $pargs = explode("/", $p);
+                $pargs = explode('/', $p);
                 
                 // 取出最后一个参数
                 $last = array_pop($pargs);
@@ -81,13 +81,13 @@ class HTTPDispatcher {
             }
         }
         
-        $className = $this->ctrlPath . "\\" . $ctrlName;
+        $className = $this->ctrlPath . '\\' . $ctrlName;
         
         if ($this->ctrlPath != 'Ctrl') {
             if (!file_exists(APP_PATH . '/' . $this->ctrlPath . '/' . $ctrlName . '.php')) {
                 if (file_exists(APP_PATH . '/' . $this->ctrlPath . '/plugins/' . strtolower($ctrlName) . '/' . $ctrlName . '.php')) {
                     
-                    $className = $this->ctrlPath . "\\plugins\\" . strtolower($ctrlName) . '\\' . $ctrlName;
+                    $className = $this->ctrlPath . '\\plugins\\' . strtolower($ctrlName) . '\\' . $ctrlName;
                     
                     $this->template = $this->ctrlPath . '/plugins/' . strtolower($ctrlName) . '/templates';
                     
@@ -103,8 +103,8 @@ class HTTPDispatcher {
         }
         
         $GLOBALS['CTRL_NAME'] = strtolower($ctrlName);
-        $GLOBALS['METHOD_NAME'] = strtolower($methodName); 
-
+        $GLOBALS['METHOD_NAME'] = strtolower($methodName);
+        
         $ctrl = Util::loadCls($className);
         
         if ($ctrlName != 'Plugins' && !method_exists($ctrl, $methodName)) {
@@ -142,39 +142,37 @@ class HTTPDispatcher {
             
             $ctrl->initSmarty($this->template, $this->compile);
         }
-                
+        
         $ctrl->setParams($params);
         
-        $msg = $ctrl->$methodName();
+        $data = $ctrl->$methodName();
         
-        if ($msg) {
-            $this->display($msg, 0);
+        if ($data) {
+            $this->display($data, 1);
         }
     
     }
 
-    public function display($msg, $status) {
+    public function display($data, $code) {
 
         if ($this->model == 'JSON') {
-            
             $array = array (
-                "ret" => $status, 
-                "version" => VERSION, 
-                "unixtime" => REQUEST_TIME, 
-                'msg' => $msg 
+                'code' => $code, 
+                'version' => VERSION, 
+                'unixtime' => REQUEST_TIME, 
+                'data' => $data 
             );
-            
             echo json_encode($array);
         } else {
-            if ($status == 1) {
-                echo "<pre>";
-                print_r($msg);
-                echo "</pre>";
+            if ($code == 0) {
+                echo '<pre>';
+                print_r($data);
+                echo '</pre>';
             } else {
-                if (is_array($msg)) {
-                    echo json_encode($msg);
+                if (is_array($data)) {
+                    echo json_encode($data);
                 } else {
-                    echo $msg;
+                    echo $data;
                 }
             }
         }
@@ -188,7 +186,7 @@ class HTTPDispatcher {
 
         $ctrlName = ucfirst(strtolower($params['action']));
         
-        $className = $this->ctrlPath . "\\" . $ctrlName;
+        $className = $this->ctrlPath . '\\' . $ctrlName;
         
         $ctrl = Util::loadCls($className);
         
@@ -210,7 +208,7 @@ class HTTPDispatcher {
 
         $ctrlName = ucfirst(strtolower($params['action']));
         
-        $className = $this->ctrlPath . "\\" . $ctrlName;
+        $className = $this->ctrlPath . '\\' . $ctrlName;
         
         $ctrl = Util::loadCls($className);
         

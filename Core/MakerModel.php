@@ -6,7 +6,7 @@ class MakerModel {
     public static function buildForm() {
 
         $db = Util::loadCls('Engine\MySQLi');
-        $db->connect(DB_HOST, DB_USER, DB_PSWD, DB_NAME, DB_PORT, 'utf-8', 'false');
+        $db->connect(DB_HOST, DB_USER, DB_PSWD, DB_NAME, DB_PORT, CHARSET, 'false');
         
         $tables = $db->show_tables('TABLE_NAME, TABLE_COMMENT');
         
@@ -54,7 +54,7 @@ class MakerModel {
     public static function buildAll() {
 
         $db = Util::loadCls('Engine\MySQLi');
-        $db->connect(DB_HOST, DB_USER, DB_PSWD, DB_NAME, DB_PORT, 'utf-8', 'false');
+        $db->connect(DB_HOST, DB_USER, DB_PSWD, DB_NAME, DB_PORT, CHARSET, 'false');
         
         $tables = $db->show_tables('TABLE_NAME, TABLE_COMMENT');
         

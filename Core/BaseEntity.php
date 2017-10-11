@@ -1,7 +1,7 @@
 <?php
 namespace Core;
 
-class BaseEntity
-{
+class BaseEntity {
+
 }
 ?>

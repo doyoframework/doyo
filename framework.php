@@ -48,7 +48,7 @@ define('CORE_PATH', __DIR__);
 set_exception_handler(function ($exception) {
     $exceptionHash = Context::formatException($exception);
     
-    Context::dispatcher()->display($exceptionHash, 1);
+    Context::dispatcher()->display($exceptionHash, 0);
 });
 
 /**

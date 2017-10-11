@@ -9,7 +9,7 @@ class MakerEntity {
     public static function buildAll() {
 
         $db = Util::loadCls('Engine\MySQLi');
-        $db->connect(DB_HOST, DB_USER, DB_PSWD, DB_NAME, DB_PORT, 'utf-8', 'false');
+        $db->connect(DB_HOST, DB_USER, DB_PSWD, DB_NAME, DB_PORT, CHARSET, 'false');
         
         $tables = $db->show_tables();
         
@@ -24,7 +24,7 @@ class MakerEntity {
     public static function build($name) {
 
         $db = Util::loadCls('Engine\MySQLi');
-        $db->connect(DB_HOST, DB_USER, DB_PSWD, DB_NAME, DB_PORT, 'utf-8', 'false');
+        $db->connect(DB_HOST, DB_USER, DB_PSWD, DB_NAME, DB_PORT, CHARSET, 'false');
         
         $file = array ();
         
