@@ -375,5 +375,12 @@ class Util {
     
     }
 
+    public static function millisecond() {
+
+        list ($usec, $sec) = explode(' ', microtime());
+        return (float) sprintf('%.0f', (floatval($usec) + floatval($sec)) * 1000);
+    
+    }
+
 }
 ?>

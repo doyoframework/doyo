@@ -133,7 +133,7 @@ class HTTPDispatcher {
                 exit();
             }
             
-            if (!empty($_POST)) {
+            if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 
                 $ctrl->isPost = true;
                 
@@ -159,7 +159,7 @@ class HTTPDispatcher {
             $array = array (
                 'code' => $code, 
                 'version' => VERSION, 
-                'unixtime' => REQUEST_TIME, 
+                'unixtime' => Util::millisecond(), 
                 'data' => $data 
             );
             echo json_encode($array);

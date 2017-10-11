@@ -55,44 +55,60 @@ class Context {
      */
     public static function formatException($exception) {
 
-        $exceptionHash = array (
-            'className' => 'Exception', 
-            'message' => $exception->getMessage(), 
-            'code' => $exception->getCode(), 
-            'file' => $exception->getFile(), 
-            'line' => $exception->getLine(), 
-            'trace' => array () 
-        );
-        
-        if ($exception instanceof HTTPException) {
-            $exceptionHash['data'] = $exception->getData();
-        }
-        
-        $traceItems = $exception->getTrace();
-        
-        foreach ( $traceItems as $traceItem ) {
-            $traceHash = array (
-                'file' => $traceItem['file'], 
-                'line' => $traceItem['line'], 
-                'function' => $traceItem['function'], 
-                'args' => array () 
+        if (EXCEPTION_LEVEL === 0) {
+            $exceptionHash = array (
+                'message' => $exception->getMessage() 
             );
             
-            if (!empty($traceItem['class'])) {
-                $traceHash['class'] = $traceItem['class'];
+            if ($exception instanceof HTTPException) {
+                $data = $exception->getData();
+                if ($data) {
+                    $exceptionHash['data'] = $data;
+                }
             }
+        } else {
             
-            if (!empty($traceItem['type'])) {
-                $traceHash['type'] = $traceItem['type'];
-            }
+            $exceptionHash = array (
+                'message' => $exception->getMessage() 
+            );
             
-            if (!empty($traceItem['args'])) {
-                foreach ( $traceItem['args'] as $argsItem ) {
-                    // $traceHash['args'][] = var_export($argsItem, true);
+            if ($exception instanceof HTTPException) {
+                $data = $exception->getData();
+                if ($data) {
+                    $exceptionHash['data'] = $data;
                 }
             }
             
-            $exceptionHash['trace'][] = $traceHash;
+            $traceItems = $exception->getTrace();
+            
+            foreach ( $traceItems as $traceItem ) {
+                $traceHash = array (
+                    'file' => $traceItem['file'], 
+                    'line' => $traceItem['line'], 
+                    'function' => $traceItem['function'], 
+                    'args' => array () 
+                );
+                
+                if (!empty($traceItem['class'])) {
+                    $traceHash['class'] = $traceItem['class'];
+                }
+                
+                if (!empty($traceItem['type'])) {
+                    $traceHash['type'] = $traceItem['type'];
+                }
+                
+                if (!empty($traceItem['args'])) {
+                    foreach ( $traceItem['args'] as $argsItem ) {
+                        $traceHash['args'][] = var_export($argsItem, true);
+                    }
+                }
+                
+                $exceptionHash['trace'][] = $traceHash;
+                
+                if (EXCEPTION_LEVEL === 1) {
+                    break;
+                }
+            }
         }
         
         return $exceptionHash;

@@ -8,17 +8,13 @@ class HTTPException extends \Exception {
      *
      * @var array
      */
-    private $data = array ();
+    private $data = null;
 
-    public function __construct($message, $data = array()) {
+    public function __construct($message, $data = null) {
 
-        if (!is_array($data)) {
-            $data = array (
-                'errMsg' => $data 
-            );
+        if ($data != null) {
+            $this->data = $data;
         }
-        
-        $this->data = $data;
         
         parent::__construct($message);
     

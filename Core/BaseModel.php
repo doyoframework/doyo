@@ -166,7 +166,7 @@ class BaseModel {
     /**
      * 根据索引删除一条数据
      */
-    public final function remove($primary_val) {
+    public final function remove($primary_val = false) {
 
         $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
         
@@ -191,7 +191,7 @@ class BaseModel {
     /**
      * 根据索引更新一条数据
      */
-    public final function alter($primary_val, $array = false) {
+    public final function alter($primary_val = false, $array = false) {
 
         $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
         
@@ -209,16 +209,14 @@ class BaseModel {
             $array = $this->__setter;
         }
         
-        if (!$array) {
+        if (!$array || !is_array($array)) {
             throw Util::HTTPException('array is null.');
         }
         
         $status = $this->update("where `{$primary_key}` = '{$primary_val}'", $array);
         
-        if (is_array($array)) {
-            foreach ( $array as $k => $v ) {
-                $this->entity->$k = $v;
-            }
+        foreach ( $array as $k => $v ) {
+            $this->entity->$k = $v;
         }
         
         $this->__setter = array ();
