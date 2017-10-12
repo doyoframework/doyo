@@ -48,8 +48,15 @@ class Util {
      * @param string $className            
      * @return \Engine\RedisEngine
      */
-    public static function loadRedis($tags, $config) {
+    public static function loadRedis($tags, $config = false) {
 
+        if ($config === false) {
+            if (!isset($GLOBALS['REDIS'][$tags])) {
+                throw Util::HTTPException('load redis tags ' . $tags . ' not exists.');
+            }
+            $config = $GLOBALS['REDIS'][$tags];
+        }
+        
         if (!array_key_exists($tags, self::$redis)) {
             $className = 'Engine\\RedisEngine';
             self::$redis[$tags] = new $className();
@@ -92,12 +99,12 @@ class Util {
         $dirslen = count($dirs);
         $state = '';
         for($c = 0; $c < $dirslen; $c++) {
-            $thispath = "";
+            $thispath = '';
             for($cc = 0; $cc <= $c; $cc++) {
                 $thispath .= $dirs[$cc] . '/';
             }
             if (!@file_exists($thispath)) {
-                $thispaths = substr($thispath, 0, strrpos($thispath, "/"));
+                $thispaths = substr($thispath, 0, strrpos($thispath, '/'));
                 $state = @mkdir($thispaths, $mode);
             }
         }
@@ -196,8 +203,8 @@ class Util {
         } else {
             $ipAddr = $_SERVER['REMOTE_ADDR'];
         }
-        if (strchr($ipAddr, ",")) {
-            $ipAddr = explode(",", $ipAddr);
+        if (strchr($ipAddr, ',')) {
+            $ipAddr = explode(',', $ipAddr);
             $ipAddr = $ipAddr[count($ipAddr) - 1];
         }
         $ipAddr = ltrim($ipAddr);
@@ -284,7 +291,7 @@ class Util {
         $args = func_get_args();
         $url = array_shift($args);
         foreach ( $args as $param ) {
-            $url .= "/" . $param;
+            $url .= '/' . $param;
         }
         
         return REWRITE . $url;
@@ -308,7 +315,7 @@ class Util {
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
         
-        // curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)"); // 伪造浏览器头
+        // curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)'); // 伪造浏览器头
         
         // curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         

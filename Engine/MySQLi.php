@@ -46,14 +46,14 @@ class MySQLi {
         $this->mysql = new \mysqli($host, $this->_user, $this->_password, $this->_database, $this->_port);
         
         if (mysqli_connect_errno()) {
-            trigger_error("Mysqli connect failed: " . mysqli_connect_error());
+            trigger_error('Mysqli connect failed: ' . mysqli_connect_error());
             return false;
         }
         
         if ($this->_charset) {
             $this->mysql->set_charset($this->_charset);
             $charset = str_replace('-', '', $this->_charset);
-            $this->mysql->query("set names `{$charset}`");
+            $this->mysql->query('set names `{$charset}`');
         }
     
     }

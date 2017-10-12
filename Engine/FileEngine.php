@@ -480,15 +480,15 @@ class FileEngine {
         $request = xmlrpc_encode_request($method, $args);
         
         // 构造需要进行通信的XML-RPC服务器端的查询POST请求信息
-        $query = "POST " . FILE_SERVER_EXEC . " HTTP/1.0" . "\n";
-        $query .= "User_Agent: XML-RPC Client" . "\n";
-        $query .= "Host: " . FILE_SITE . "\n";
-        $query .= "Content-Type: text/xml" . "\n";
-        $query .= "Content-Length: " . strlen($request) . "\n\n" . $request . "\n";
+        $query = 'POST ' . FILE_SERVER_EXEC . ' HTTP/1.0' . "\n";
+        $query .= 'User_Agent: XML-RPC Client' . "\n";
+        $query .= 'Host: ' . FILE_SITE . "\n";
+        $query .= 'Content-Type: text/xml' . "\n";
+        $query .= 'Content-Length: ' . strlen($request) . "\n\n" . $request . "\n";
         
         // 把构造好的HTTP协议发送给服务器，失败返回false
         if (!fputs($fp, $query, strlen($query))) {
-            echo "Write error";
+            echo 'Write error';
             return false;
         }
         

@@ -47,7 +47,7 @@ class BaseCtrl {
      */
     public final function initSmarty($template = null, $compile = null) {
 
-        require_once (CORE_PATH . "/Engine/Smarty/libs/Smarty.class.php");
+        require_once (CORE_PATH . '/Engine/Smarty/libs/Smarty.class.php');
         
         $this->view = new \Smarty();
         
@@ -269,10 +269,10 @@ class BaseCtrl {
                 throw Util::HTTPException($key . ' not array');
             }
             
-            $val = array_map("floatval", $_val);
+            $val = array_map('floatval', $_val);
             
             if ($abs) {
-                $val = array_map("abs", $val);
+                $val = array_map('abs', $val);
             }
         }
         
@@ -323,7 +323,7 @@ class BaseCtrl {
             
             $val = $_val;
             
-            $val = array_map("strval", $val);
+            $val = array_map('strval', $val);
         }
         
         return $val;

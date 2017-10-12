@@ -121,7 +121,7 @@ class BaseModel {
             
             return $this->entity->$key;
         } else {
-            throw Util::HTTPException("not get key: " . $key);
+            throw Util::HTTPException('not get key: ' . $key);
         }
     
     }
@@ -347,7 +347,7 @@ class BaseModel {
      *
      *
      */
-    public final function node($where, $field = "*") {
+    public final function node($where, $field = '*') {
 
         $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
         
@@ -371,7 +371,7 @@ class BaseModel {
 
     public final function count($where) {
 
-        return $this->field($where, "count(*)");
+        return $this->field($where, 'count(*)');
     
     }
 
@@ -451,7 +451,7 @@ class BaseModel {
         
         $_offset = (($page - 1) * $limit) + $offset;
         
-        $_limit = $_offset . ", " . $limit;
+        $_limit = $_offset . ', ' . $limit;
         
         $sql = "select {$field} from `{$table}` {$where} limit {$_limit};";
         
@@ -484,7 +484,7 @@ class BaseModel {
     /**
      * 查询
      */
-    public final function select($where = "where 1 = 1", $field = "*", $limit = false, $page = false, $offset = 0) {
+    public final function select($where = 'where 1 = 1', $field = '*', $limit = false, $page = false, $offset = 0) {
 
         $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
         $this->__result = array ();
@@ -518,7 +518,7 @@ class BaseModel {
      * @return array
      *
      */
-    public final function with($tab, $where, $field = "*", $limit = false) {
+    public final function with($tab, $where, $field = '*', $limit = false) {
 
         $tableA = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
         $tableB = strtolower(DB_DATA_PREFIX . $tab);

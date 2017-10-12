@@ -1,6 +1,5 @@
 <?php
 use Core\Context;
-session_start();
 
 // 必须需要xmlrpc 模块
 if (!function_exists('xmlrpc_encode_request'))

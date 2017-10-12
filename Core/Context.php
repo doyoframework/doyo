@@ -30,7 +30,56 @@ class Context {
         
         date_default_timezone_set(TIMEZONE);
         
-        header("Content-Type: text/html; charset=" . CHARSET);
+        header('Content-Type: text/html; charset=' . CHARSET);
+        
+        if (defined('SESSION_MODE') && SESSION_MODE == 'redis') {
+            
+            $sess = Util::loadCls('Engine\\SessionEngine');
+            
+            if (isset($_COOKIE['PHPSESSID'])) {
+                $sessionId = $_COOKIE['PHPSESSID'];
+            } else {
+                $sessionId = 'SESS_' . Util::millisecond() . '_' . uniqid();
+            }
+            
+            if ($sess->start) {
+                
+                session_id($sessionId);
+            } else {
+                
+                session_set_save_handler(array (
+                    $sess, 
+                    "_session_open" 
+                ), array (
+                    $sess, 
+                    "_session_close" 
+                ), array (
+                    $sess, 
+                    "_session_read" 
+                ), array (
+                    $sess, 
+                    "_session_write" 
+                ), array (
+                    $sess, 
+                    "_session_destroy" 
+                ), array (
+                    $sess, 
+                    "_session_gc" 
+                ));
+                
+                session_id($sessionId);
+                
+                session_cache_limiter('private');
+                
+                session_start();
+            }
+        } else {
+            session_cache_expire(SESSION_EXPIRE);
+            
+            session_start();
+            
+            ini_set('session.gc_maxlifetime', SESSION_EXPIRE * 60);
+        }
     
     }
 
@@ -55,7 +104,7 @@ class Context {
      */
     public static function formatException($exception) {
 
-        if (EXCEPTION_LEVEL === 0) {
+        if (defined('EXCEPTION_LEVEL') && EXCEPTION_LEVEL === 0) {
             $exceptionHash = array (
                 'message' => $exception->getMessage() 
             );
@@ -105,7 +154,7 @@ class Context {
                 
                 $exceptionHash['trace'][] = $traceHash;
                 
-                if (EXCEPTION_LEVEL === 1) {
+                if (defined('EXCEPTION_LEVEL') && EXCEPTION_LEVEL === 1) {
                     break;
                 }
             }
