@@ -69,7 +69,7 @@ class Context {
                 
                 session_id($sessionId);
                 
-                session_cache_limiter('private');
+                session_cache_limiter('nocache');
                 
                 session_start();
             }
