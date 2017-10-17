@@ -43,7 +43,7 @@ class SessionEngine {
         // 设置过期时间
         $this->redis->expire($key, SESSION_EXPIRE);
         
-        return $this->redis->get($key);
+        return $this->redis->get($key) . '';
     
     }
     
@@ -51,6 +51,8 @@ class SessionEngine {
     public function _session_write($key, $val) {
 
         $this->redis->set($key, $val, SESSION_EXPIRE);
+        
+        return true;
     
     }
     
@@ -58,13 +60,15 @@ class SessionEngine {
     public function _session_destroy($key) {
 
         $this->redis->delete($key);
+        
+        return true;
     
     }
     
     // 删除过期Session
     public function _session_gc($expire) {
 
-        return false;
+        return true;
     
     }
 
