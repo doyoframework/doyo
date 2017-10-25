@@ -60,6 +60,7 @@ class MailEngine {
      * 发送邮件
      */
     public function send($to, $title, $body, $attachment = array()) {
+
         $this->mail->clearAllRecipients();
         $this->mail->clearAddresses();
         $this->mail->clearAttachments();
@@ -67,7 +68,7 @@ class MailEngine {
         $this->mail->clearCCs();
         $this->mail->clearCustomHeaders();
         $this->mail->clearReplyTos();
-
+        
         if (is_array($to)) {
             foreach ( $to as $address ) {
                 $this->mail->addAddress($address);
@@ -83,8 +84,6 @@ class MailEngine {
         foreach ( $attachment as $path => $name ) {
             $this->mail->addAttachment($path, $name);
         }
-        
-        file_put_contents('/tmp/swoole.process.log', 'mail send: ' . $title . "\n\n\n", FILE_APPEND);
         
         return $this->mail->send();
     

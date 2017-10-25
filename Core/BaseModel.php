@@ -419,9 +419,7 @@ class BaseModel {
             
             $sql = "select count(*) as `rcount` from `{$table}` {$where};";
         }
-        
-        // tcount
-        
+                
         $res = $this->db->query($sql);
         $row = $res->fetch_assoc();
         $rcount = $row['rcount'];

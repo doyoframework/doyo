@@ -38,8 +38,11 @@ class HTTPDispatcher {
             $this->compile = $this->ctrlPath . '/templates_c';
         }
         
+        $slice = 1;
+        $pargs = array ();
+        
         $ctrlName = 'Index';
-        $methodName = 'main';
+        $methodName = '';
         
         $params = array ();
         
@@ -65,19 +68,19 @@ class HTTPDispatcher {
                 if ($tags == '.html') {
                     $pargs[] = substr($last, 0, strlen($last) - 5); // 如果是，去除.html然后合并
                 } else {
-                    $pargs[] = $last; // 如果不是，则直接合并
+                    if ($last != '') {
+                        $pargs[] = $last; // 如果不是，则直接合并
+                    }
                 }
                 
                 // ctrlName 永远是第1个
                 $ctrlName = ucfirst(strtolower($pargs[0]));
                 
-                if (count($pargs) == 2) { // 如果有两个参数，则第一个是ctrl，第二个是参数，默认method是main
-                    $params = array_splice($pargs, 1);
-                } else if (count($pargs) >= 3) { // 如果有三个参数，则第一个是ctrl，第二个是method，第三个以后都是参数
-                    $params = array_splice($pargs, 2);
-                    
+                if (isset($pargs[1])) {
                     $methodName = strtolower($pargs[1]);
                 }
+                
+                $slice = 1;
             }
         }
         
@@ -85,13 +88,22 @@ class HTTPDispatcher {
         
         if ($this->ctrlPath != 'Ctrl') {
             if (!file_exists(APP_PATH . '/' . $this->ctrlPath . '/' . $ctrlName . '.php')) {
-                if (file_exists(APP_PATH . '/' . $this->ctrlPath . '/plugins/' . strtolower($ctrlName) . '/' . $ctrlName . '.php')) {
+                if (file_exists(APP_PATH . '/' . $this->ctrlPath . '/plugins/' . strtolower($pargs[1]) . '/' . ucfirst(strtolower($pargs[1])) . '.php')) {
                     
-                    $className = $this->ctrlPath . '\\plugins\\' . strtolower($ctrlName) . '\\' . $ctrlName;
+                    $this->template = $this->ctrlPath . '/plugins/' . strtolower($pargs[1]) . '/templates';
                     
-                    $this->template = $this->ctrlPath . '/plugins/' . strtolower($ctrlName) . '/templates';
+                    $this->compile = $this->ctrlPath . '/plugins/' . strtolower($pargs[1]) . '/templates_c';
                     
-                    $this->compile = $this->ctrlPath . '/plugins/' . strtolower($ctrlName) . '/templates_c';
+                    $ctrlName = ucfirst(strtolower($pargs[1]));
+                    
+                    if (isset($pargs[2]) == 2) {
+                        $methodName = strtolower($pargs[2]);
+                    }
+                    
+                    $slice = 2;
+                    
+                    // 编辑器插件
+                    $className = $this->ctrlPath . '\\plugins\\' . strtolower($pargs[1]) . '\\' . $ctrlName;
                 }
             }
         }
@@ -107,43 +119,29 @@ class HTTPDispatcher {
         
         $ctrl = Util::loadCls($className);
         
-        if ($ctrlName != 'Plugins' && !method_exists($ctrl, $methodName)) {
-            $params = array_splice($pargs, 1);
+        if (method_exists($ctrl, $methodName)) {
+            $params = array_slice($pargs, $slice + 1);
+        } else {
+            $params = array_slice($pargs, $slice);
             $methodName = 'main';
         }
         
+        $ctrl->isPost = false;
+        
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            
+            $ctrl->isPost = true;
+            
+            $params = array_merge($params, $_POST, $_FILES);
+        }
+        
         if ($ctrl instanceof BaseCtrl) {
-            $ctrl->isPost = false;
-            
-            if (in_array($methodName, array (
-                'get', 
-                'post', 
-                'assign', 
-                'display', 
-                'redirect', 
-                'display_json', 
-                'initfiles', 
-                'setsmarty', 
-                'initsmarty', 
-                '__construct', 
-                '__initialize' 
-            ))) {
-                header('HTTP/1.1 404 Not Found');
-                echo '404';
-                exit();
-            }
-            
-            if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                
-                $ctrl->isPost = true;
-                
-                $params = array_merge($params, $_POST, $_FILES);
-            }
-            
             $ctrl->initSmarty($this->template, $this->compile);
         }
         
         $ctrl->setParams($params);
+        
+        $ctrl->__initialize();
         
         $data = $ctrl->$methodName();
         

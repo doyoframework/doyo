@@ -31,8 +31,6 @@ class BaseCtrl {
      */
     public final function __construct() {
 
-        $this->__initialize();
-    
     }
 
     /**
@@ -109,44 +107,32 @@ class BaseCtrl {
      */
     public final function setParams($param) {
 
-        $this->param = (array) $param;
-    
-    }
-
-    /**
-     * 删除第一个参数并返回
-     *
-     * @return string
-     */
-    protected final function params_shift() {
-
-        return array_shift($this->param);
-    
-    }
-
-    /**
-     * 按照xx=xx||xx=xx的格式以key=>value方式取值
-     *
-     * @return string
-     */
-    protected final function params($key) {
-
-        if (!isset($this->param[0])) {
-            return null;
-        }
-        
-        $args = $this->param[0];
-        
-        $ary = explode('||', $args);
-        
-        foreach ( $ary as $val ) {
-            $kv = explode('=', $val);
-            if ($kv[0] == $key) {
-                return $kv[1];
+        if (is_array($param)) {
+            $this->param = $param;
+        } else if (is_string($param)) {
+            
+            $this->param = array ();
+            
+            $ary = explode('&', $param);
+            
+            foreach ( $ary as $val ) {
+                $kv = explode('=', $val);
+                $this->param[trim($kv[0])] = trim($kv[1]);
             }
+        } else {
+            throw Util::HTTPException('set params error');
         }
-        
-        return null;
+    
+    }
+
+    /**
+     * 获得参数
+     *
+     * @return array
+     */
+    public final function getParams() {
+
+        return $this->param;
     
     }
 

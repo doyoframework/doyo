@@ -379,6 +379,8 @@ class Util {
             $body, 
             $attach 
         ));
+        
+        file_put_contents('/tmp/swoole.process.log', 'mail send: ' . $title . "\n\n\n", FILE_APPEND);
     
     }
 
