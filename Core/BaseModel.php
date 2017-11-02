@@ -28,7 +28,7 @@ class BaseModel {
      * @var \Engine\RedisEngine
      *
      */
-    private $rd;
+    private $cache;
 
     /**
      * Entity
@@ -86,6 +86,10 @@ class BaseModel {
         
         $this->db = Util::loadCls('Engine\MySQLi');
         $this->db->connect(DB_HOST, DB_USER, DB_PSWD, DB_NAME, DB_PORT, CHARSET, 'false');
+        
+        if (isset($GLOBALS['REDIS']['cache'])) {
+            $this->cache = Util::loadRedis('cache');
+        }
         
         $this->entity = Util::loadCls('Entity\\' . $this->ENTITY_NAME, $id);
         
@@ -237,7 +241,6 @@ class BaseModel {
             return false;
         }
         
-        $this->id = $node[$this->entity->PRIMARY_KEY];
         foreach ( $this->entity as $key => $val ) {
             if ($key != 'PRIMARY_KEY' && isset($node[$key])) {
                 $this->entity->$key = $node[$key];
@@ -332,9 +335,7 @@ class BaseModel {
      */
     public final function field($where, $field) {
 
-        $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
-        
-        $node = $this->db->node($table, $where, $field);
+        $node = $this->node($where);
         
         return $node[$field];
     
@@ -347,11 +348,22 @@ class BaseModel {
      *
      *
      */
-    public final function node($where, $field = '*') {
+    public final function node($where, $field = '*', $cache = true) {
 
         $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
         
-        $node = $this->db->node($table, $where, $field);
+        $ckey = md5($table . '-' . $where . '-' . $field);
+        
+        if (isset($GLOBALS['REDIS']['cache']) && $cache) {
+            if ($this->cache->exists($ckey)) {
+                $node = json_decode($this->cache->get($ckey), true);
+            } else {
+                $node = $this->db->node($table, $where, $field);
+                $this->cache->set($ckey, json_encode($node, true), 5);
+            }
+        } else {
+            $node = $this->db->node($table, $where, $field);
+        }
         
         if ($node) {
             $this->id = $node[$this->entity->PRIMARY_KEY];
@@ -369,12 +381,6 @@ class BaseModel {
     
     }
 
-    public final function count($where) {
-
-        return $this->field($where, 'count(*)');
-    
-    }
-
     /**
      * 查询发布的内容
      *
@@ -387,7 +393,7 @@ class BaseModel {
         $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
         $this->__result = array ();
         $this->__result_clone = array ();
-        
+                
         $where = trim($where);
         
         if (strtolower(substr($where, 0, 5)) == 'where') {
@@ -419,7 +425,7 @@ class BaseModel {
             
             $sql = "select count(*) as `rcount` from `{$table}` {$where};";
         }
-                
+        
         $res = $this->db->query($sql);
         $row = $res->fetch_assoc();
         $rcount = $row['rcount'];

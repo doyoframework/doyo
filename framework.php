@@ -2,8 +2,9 @@
 use Core\Context;
 
 // 必须需要xmlrpc 模块
-if (!function_exists('xmlrpc_encode_request'))
+if (!function_exists('xmlrpc_encode_request')) {
     exit('need Modules xmlrpc');
+}
 
 /**
  * 自动加载Class

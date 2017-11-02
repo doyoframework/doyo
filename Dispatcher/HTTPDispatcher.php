@@ -26,6 +26,8 @@ class HTTPDispatcher {
      */
     public $model = 'HTML';
 
+    public $params = array ();
+
     /**
      * 分发器
      */
@@ -43,8 +45,6 @@ class HTTPDispatcher {
         
         $ctrlName = 'Index';
         $methodName = '';
-        
-        $params = array ();
         
         // 普通访问
         if (isset($_GET['p'])) {
@@ -120,9 +120,9 @@ class HTTPDispatcher {
         $ctrl = Util::loadCls($className);
         
         if (method_exists($ctrl, $methodName)) {
-            $params = array_slice($pargs, $slice + 1);
+            $this->params = array_slice($pargs, $slice + 1);
         } else {
-            $params = array_slice($pargs, $slice);
+            $this->params = array_slice($pargs, $slice);
             $methodName = 'main';
         }
         
@@ -132,14 +132,14 @@ class HTTPDispatcher {
             
             $ctrl->isPost = true;
             
-            $params = array_merge($params, $_POST, $_FILES);
+            $this->params = array_merge($this->params, $_POST, $_FILES);
         }
         
         if ($ctrl instanceof BaseCtrl) {
             $ctrl->initSmarty($this->template, $this->compile);
         }
         
-        $ctrl->setParams($params);
+        $ctrl->setParams($this->params);
         
         $ctrl->__initialize();
         
@@ -188,10 +188,11 @@ class HTTPDispatcher {
         
         $ctrl = Util::loadCls($className);
         
-        if ($ctrl instanceof BaseCtrl)
+        if ($ctrl instanceof BaseCtrl) {
             $ctrl->initSmarty($this->template, $this->compile);
+        }
         
-        $ctrl->setParams($params);
+        $ctrl->setParams($this->params);
         
         $method = $params['method'];
         
