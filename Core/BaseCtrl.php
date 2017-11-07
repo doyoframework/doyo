@@ -483,5 +483,23 @@ class BaseCtrl {
     
     }
 
+    public $fd;
+
+    public $svr;
+
+    public final function send($fd, $op, $data) {
+
+        $array = array (
+            'code' => 1, 
+            'op' => $op, 
+            'version' => VERSION, 
+            'unixtime' => Util::millisecond(), 
+            'data' => $data 
+        );
+        
+        $this->svr->send($fd, json_encode($array, true));
+    
+    }
+
 }
 ?>

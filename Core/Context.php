@@ -97,6 +97,19 @@ class Context {
     }
 
     /**
+     * SocketDispatcher
+     *
+     * @return \Dispatcher\SocketDispatcher
+     *
+     *
+     */
+    public static function SocketDispatcher() {
+
+        return Util::loadCls('Dispatcher\SocketDispatcher');
+    
+    }
+
+    /**
      * 格式化异常
      *
      * @param \Exception $exception            
