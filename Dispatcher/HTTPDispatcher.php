@@ -145,9 +145,7 @@ class HTTPDispatcher {
         
         $data = $ctrl->$methodName();
         
-        if ($data) {
-            $this->display($data, 1);
-        }
+        $this->display($data, 1);
     
     }
 

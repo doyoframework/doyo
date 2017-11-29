@@ -482,22 +482,56 @@ class BaseCtrl {
         Context::dispatcher()->model = 'JSON';
     
     }
+    
+    public final function display_html() {
+    
+        Context::dispatcher()->model = 'HTML';
+    
+    }
 
     public $fd;
 
     public $svr;
 
-    public final function send($fd, $op, $data) {
+    public final function send($op, $data, $fd = -1, $code = 1) {
 
+        if ($fd === -1) {
+            $fd = $this->fd;
+        }
+        
         $array = array (
-            'code' => 1, 
+            'code' => $code, 
             'op' => $op, 
             'version' => VERSION, 
             'unixtime' => Util::millisecond(), 
             'data' => $data 
         );
         
-        $this->svr->send($fd, json_encode($array, true));
+        $data = json_encode($array, true);
+        
+        $this->svr->push($fd, $data);
+    
+    }
+
+    public final function error($data, $fd = -1) {
+
+        if ($fd === -1) {
+            $fd = $this->fd;
+        }
+        
+        $this->send(-1, array (
+            'message' => $data 
+        ), $fd, 0);
+    
+    }
+
+    public final function close($fd = -1) {
+
+        if ($fd === -1) {
+            $fd = $this->fd;
+        }
+        
+        $this->svr->close($fd);
     
     }
 

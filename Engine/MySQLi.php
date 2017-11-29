@@ -106,6 +106,8 @@ class MySQLi {
             
             $sql = "select {$field} from `{$table}` {$where} {$limit};";
             
+            //echo $sql;
+            
             $res = $this->query($sql);
             
             $len = $res->num_rows;
@@ -200,6 +202,8 @@ class MySQLi {
         
         $sql = "insert into `{$table}` ({$filedKey}) values ({$filedVal});";
         
+        //echo $sql;
+        
         file_put_contents(SQL_LOG_PATH, $sql . "\n", FILE_APPEND);
         
         $stmt = $this->mysql->prepare($sql);
@@ -272,6 +276,8 @@ class MySQLi {
             $set = implode(',', $set);
             
             $sql = "update `{$table}` set {$set} {$where};";
+            
+            //echo $sql;
             
             $stmt = $this->mysql->prepare($sql);
             

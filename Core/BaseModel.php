@@ -91,7 +91,11 @@ class BaseModel {
             $this->cache = Util::loadRedis('cache');
         }
         
-        $this->entity = Util::loadCls('Entity\\' . $this->ENTITY_NAME, $id);
+        $entity = APP_PATH . '/Entity/' . $this->ENTITY_NAME . '.php';
+        
+        if (file_exists($entity)) {
+            $this->entity = Util::loadCls('Entity\\' . $this->ENTITY_NAME, $id);
+        }
         
         if ($id) {
             $this->read($id);
@@ -365,7 +369,7 @@ class BaseModel {
             $node = $this->db->node($table, $where, $field);
         }
         
-        if ($node) {
+        if ($node && isset($node[$this->entity->PRIMARY_KEY])) {
             $this->id = $node[$this->entity->PRIMARY_KEY];
             foreach ( $this->entity as $key => $val ) {
                 if ($key != 'PRIMARY_KEY' && isset($node[$key])) {
@@ -393,7 +397,7 @@ class BaseModel {
         $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
         $this->__result = array ();
         $this->__result_clone = array ();
-                
+        
         $where = trim($where);
         
         if (strtolower(substr($where, 0, 5)) == 'where') {
