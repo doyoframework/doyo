@@ -5,21 +5,13 @@ use OSS\Core\OssException;
 use OSS\OssClient;
 
 class Alioss {
-
-    const OSS_ACCESS_ID = 'WkHReDkgl1O84kdN';
-
-    const OSS_ACCESS_KEY = 'QZpTr3cBPVIDJ2SgKiGBUFYaFmGqOX';
-
-    const OSS_ENDPOINT = 'oss-ap-southeast-1.aliyuncs.com';
-
-    const OSS_TEST_BUCKET = 'cocora';
-
+	
     private $ossClient;
 
-    public function __construct() {
+    public function __construct($accessId, $accessKey, $endpoint) {
 
         try {
-            $this->ossClient = new OssClient(self::OSS_ACCESS_ID, self::OSS_ACCESS_KEY, self::OSS_ENDPOINT);
+            $this->ossClient = new OssClient($accessId, $accessKey, $endpoint);
         } catch ( OssException $e ) {
             printf(__FUNCTION__ . "creating OssClient instance: FAILED\n");
             printf($e->getMessage() . "\n");
@@ -27,18 +19,18 @@ class Alioss {
     
     }
 
-    public function upload($path, $file) {
+    public function upload($bucket, $path, $file) {
 
         $base = $path['base'] . $path['spath'];
         $name = $base . $path['name'];
         
-        $this->ossClient->createObjectDir(self::OSS_TEST_BUCKET, dirname($base));
+        $this->ossClient->createObjectDir($bucket, dirname($base));
         
         $options = array ();
         
         $options['Content-Type'] = $file['type'];
         
-        $this->ossClient->uploadFile(self::OSS_TEST_BUCKET, $name, $file['tmp_name'], $options);
+        $this->ossClient->uploadFile($bucket, $name, $file['tmp_name'], $options);
         
         file_put_contents('/tmp/swoole.process.log', 'upload: ' . $file['tmp_name'] . "\n\n\n", FILE_APPEND);
         
@@ -46,29 +38,29 @@ class Alioss {
     
     }
 
-    public function copy($path, $type, $file) {
+    public function copy($bucket, $path, $type, $file) {
 
         $base = $path['base'] . $path['spath'];
         $name = $base . $path['name'];
         
-        $this->ossClient->createObjectDir(self::OSS_TEST_BUCKET, dirname($base));
+        $this->ossClient->createObjectDir($bucket, dirname($base));
         
         $options = array ();
         
         $options['Content-Type'] = $type;
         
-        $this->ossClient->uploadFile(self::OSS_TEST_BUCKET, $name, $file, $options);
+        $this->ossClient->uploadFile($bucket, $name, $file, $options);
         
         file_put_contents('/tmp/swoole.process.log', 'copy: ' . $file . "\n\n\n", FILE_APPEND);
     
     }
 
-    public function delete($path) {
+    public function delete($bucket, $path) {
 
         $base = $path['base'] . $path['spath'];
         $name = $base . $path['name'];
         
-        $this->ossClient->deleteObject(self::OSS_TEST_BUCKET, $name);
+        $this->ossClient->deleteObject($bucket, $name);
         
         file_put_contents('/tmp/swoole.process.log', 'delete: ' . $name . "\n\n\n", FILE_APPEND);
     
