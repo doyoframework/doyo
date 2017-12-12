@@ -556,6 +556,70 @@ class BaseModel {
     
     }
 
+    public final function right($tab, $where, $field = '*', $limit = false) {
+    
+        $tableA = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
+        $tableB = strtolower(DB_DATA_PREFIX . $tab);
+    
+        if ($limit) {
+            $limit = "limit {$limit}";
+        }
+    
+        $sql = "select {$field} from `{$tableA}` a right join `{$tableB}` b on {$where} {$limit};";
+    
+        //echo $sql;
+    
+        $res = $this->db->query($sql);
+    
+        $data = array ();
+    
+        $len = $res->num_rows;
+    
+        for($i = 0; $i < $len; $i++) {
+            $data[] = $res->fetch_assoc();
+        }
+    
+        $res->free_result();
+    
+        $this->__result = $data;
+        $this->__result_clone = $data;
+    
+        return $data;
+    
+    }
+    
+    public final function left($tab, $where, $field = '*', $limit = false) {
+
+        $tableA = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
+        $tableB = strtolower(DB_DATA_PREFIX . $tab);
+        
+        if ($limit) {
+            $limit = "limit {$limit}";
+        }
+        
+        $sql = "select {$field} from `{$tableA}` a left join `{$tableB}` b on {$where} {$limit};";
+        
+        //echo $sql;
+        
+        $res = $this->db->query($sql);
+        
+        $data = array ();
+        
+        $len = $res->num_rows;
+        
+        for($i = 0; $i < $len; $i++) {
+            $data[] = $res->fetch_assoc();
+        }
+        
+        $res->free_result();
+        
+        $this->__result = $data;
+        $this->__result_clone = $data;
+        
+        return $data;
+    
+    }
+
     /**
      * 查询表内的字段
      *

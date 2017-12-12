@@ -301,7 +301,7 @@ class Util {
     /**
      * 通过curl获取远程文本内容
      */
-    public static function curl_request($url, $type, $params = false) {
+    public static function curl_request($url, $type, $params = false, $header = array()) {
 
         $ch = curl_init();
         
@@ -314,6 +314,10 @@ class Util {
         
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        
+        if (count($header) > 0) {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        }
         
         // curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)'); // 伪造浏览器头
         
