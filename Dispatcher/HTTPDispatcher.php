@@ -66,6 +66,9 @@ class HTTPDispatcher {
                 
                 // 判断是否是.html结尾
                 if ($tags == '.html') {
+                    if (count($pargs) == 0) {
+                        $pargs[] = 'index';
+                    }
                     $pargs[] = substr($last, 0, strlen($last) - 5); // 如果是，去除.html然后合并
                 } else {
                     if ($last != '') {
