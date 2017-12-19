@@ -136,7 +136,7 @@ class FileEngine {
      */
     public function upload($file, $index, $sort = '/', $part = 0, $maxW = 0, $maxH = 0, $minW = 0, $minH = 0, $lock = true, $copy = false) {
 
-        if (is_file($file)) {
+        if (is_string($file)) {
             $file = $_FILES[$file];
         }
         if (empty($file)) {
@@ -312,8 +312,9 @@ class FileEngine {
                 file_put_contents($tpath, $data);
             }
         }
-    
+        
         return $path;
+    
     }
 
     /**

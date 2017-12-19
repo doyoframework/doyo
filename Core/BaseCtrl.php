@@ -482,16 +482,63 @@ class BaseCtrl {
         Context::dispatcher()->model = 'JSON';
     
     }
-    
+
     public final function display_html() {
-    
+
         Context::dispatcher()->model = 'HTML';
     
     }
 
-    public $fd;
+    /**
+     * 获取客户端IP
+     *
+     * @return string
+     */
+    public final function ipaddr($long = true) {
 
-    public $svr;
+        if ($this->fd > 0 && isset(Util::$connections[$this->fd])) {
+            
+            if ($long) {
+                return ip2long(Util::$connections[$this->fd]->server['remote_addr']);
+            }
+            
+            return Util::$connections[$this->fd]->server['remote_addr'];
+        }
+        
+        if (getenv('HTTP_CLIENT_IP')) {
+            $ipAddr = getenv('HTTP_CLIENT_IP');
+        } else if (getenv('HTTP_X_FORWARDED_FOR')) {
+            $ipAddr = getenv('HTTP_X_FORWARDED_FOR');
+        } else if (getenv('REMOTE_ADDR')) {
+            $ipAddr = getenv('REMOTE_ADDR');
+        } else if (isset($_SERVER['REMOTE_ADDR'])) {
+            $ipAddr = $_SERVER['REMOTE_ADDR'];
+        } else {
+            if ($long) {
+                return 0;
+            } else {
+                return '0.0.0.0';
+            }
+        }
+        
+        if (strchr($ipAddr, ',')) {
+            $ipAddr = explode(',', $ipAddr);
+            $ipAddr = $ipAddr[count($ipAddr) - 1];
+        }
+        
+        $ipAddr = ltrim($ipAddr);
+        
+        if ($long) {
+            return ip2long($ipAddr);
+        }
+        
+        return $ipAddr;
+    
+    }
+
+    public $fd = -1;
+
+    public $svr = null;
 
     public final function send($op, $data, $fd = -1, $code = 1) {
 
@@ -509,12 +556,17 @@ class BaseCtrl {
         
         $data = json_encode($array, true);
         
+        echo "\nsend {$fd}\n";
+        
         $this->svr->push($fd, $data);
     
     }
 
     public final function error($data, $fd = -1) {
 
+        echo $data;
+        echo "\n";
+        
         if ($fd === -1) {
             $fd = $this->fd;
         }
@@ -529,6 +581,10 @@ class BaseCtrl {
 
         if ($fd === -1) {
             $fd = $this->fd;
+        }
+        
+        if (isset(Util::$connections[$fd])) {
+            unset(Util::$connections[$fd]);
         }
         
         $this->svr->close($fd);

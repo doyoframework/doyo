@@ -77,7 +77,7 @@ class MakerModel {
             
             $key = $db->show_primary_key($name);
             
-            if(empty($key)) {
+            if (empty($key)) {
                 $key = 'id';
             }
             

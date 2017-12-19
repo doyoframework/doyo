@@ -5,6 +5,8 @@ use Exception\HTTPException;
 
 class Util {
 
+    public static $connections = array ();
+
     private static $instances = array ();
 
     /**
@@ -64,6 +66,17 @@ class Util {
         }
         
         return self::$redis[$tags];
+    
+    }
+
+    /**
+     * 加载Ctrl类
+     *
+     * @return BaseCtrl
+     */
+    public static function loadCtrl($clsName) {
+
+        return Util::loadCls("Ctrl\\{$clsName}");
     
     }
 
@@ -184,36 +197,6 @@ class Util {
                 return $item;
             }
         }
-    
-    }
-
-    /**
-     * 获取客户端IP
-     *
-     * @return string
-     */
-    public static function getClientIP($int = true) {
-
-        if (getenv('HTTP_CLIENT_IP')) {
-            $ipAddr = getenv('HTTP_CLIENT_IP');
-        } else if (getenv('HTTP_X_FORWARDED_FOR')) {
-            $ipAddr = getenv('HTTP_X_FORWARDED_FOR');
-        } else if (getenv('REMOTE_ADDR')) {
-            $ipAddr = getenv('REMOTE_ADDR');
-        } else {
-            $ipAddr = $_SERVER['REMOTE_ADDR'];
-        }
-        if (strchr($ipAddr, ',')) {
-            $ipAddr = explode(',', $ipAddr);
-            $ipAddr = $ipAddr[count($ipAddr) - 1];
-        }
-        $ipAddr = ltrim($ipAddr);
-        
-        if ($int) {
-            return ip2long($ipAddr);
-        }
-        
-        return $ipAddr;
     
     }
 
