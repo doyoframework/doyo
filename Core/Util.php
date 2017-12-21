@@ -17,7 +17,7 @@ class Util {
      */
     public static function loadCls($className, $tags = '') {
 
-        if (!array_key_exists($className . '_' . $tags, self::$instances)) {
+        if (!isset(self::$instances[$className . '_' . $tags])) {
             self::$instances[$className . '_' . $tags] = new $className();
         }
         return self::$instances[$className . '_' . $tags];
@@ -34,7 +34,7 @@ class Util {
      */
     public static function loadModel($className, $entryName, $id) {
 
-        if (!array_key_exists($className . '_' . $id, self::$models)) {
+        if (!isset(self::$models[$className . '_' . $id])) {
             self::$models[$className . '_' . $id] = new $className($entryName, $id);
         }
         
@@ -59,7 +59,7 @@ class Util {
             $config = $GLOBALS['REDIS'][$tags];
         }
         
-        if (!array_key_exists($tags, self::$redis)) {
+        if (!isset(self::$redis[$tags])) {
             $className = 'Engine\\RedisEngine';
             self::$redis[$tags] = new $className();
             self::$redis[$tags]->connect($config['host'], $config['port'], $config['timeout'], $config['database'], $config['pconnect'], $config['password']);

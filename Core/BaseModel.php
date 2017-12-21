@@ -117,13 +117,13 @@ class BaseModel {
      */
     public final function __get($key) {
 
-        if (array_key_exists($key, $this->entity)) {
+        if (isset($this->entity[$key])) {
             
             if ($this->id <= 0) {
                 return false;
             }
             
-            if (array_key_exists($key, $this->__setter)) {
+            if (isset($this->__setter[$key])) {
                 return $this->__setter[$key];
             }
             
@@ -139,7 +139,7 @@ class BaseModel {
      */
     public final function __set($key, $val) {
 
-        if (array_key_exists($key, $this->entity)) {
+        if (isset($this->entity[$key])) {
             $this->__setter[$key] = $val;
         }
     

@@ -147,7 +147,7 @@ class BaseCtrl {
             $key--;
         }
         
-        $val = array_key_exists($key, $this->param) ? floatval($this->param[$key]) : '';
+        $val = isset($this->param[$key]) ? floatval($this->param[$key]) : '';
         
         if ($notEmpty && $val === '') {
             throw Util::HTTPException($key . ' empty');
@@ -178,7 +178,7 @@ class BaseCtrl {
         $val = '';
         
         if (isset($this->param[$key]) && is_string($this->param[$key])) {
-            $val = array_key_exists($key, $this->param) ? trim($this->param[$key]) : '';
+            $val = isset($this->param[$key]) ? trim($this->param[$key]) : '';
         }
         
         if ($notEmpty && $val == '') {
@@ -206,7 +206,7 @@ class BaseCtrl {
         $val = '';
         
         if (isset($this->param[$key]) && is_string($this->param[$key])) {
-            $val = array_key_exists($key, $this->param) ? trim($this->param[$key]) : '';
+            $val = isset($this->param[$key]) ? trim($this->param[$key]) : '';
         }
         
         if ($notEmpty && $val == '') {
@@ -228,7 +228,7 @@ class BaseCtrl {
             $key--;
         }
         
-        $val = array_key_exists($key, $this->param) ? $this->param[$key] : '';
+        $val = isset($this->param[$key]) ? $this->param[$key] : '';
         
         if ($notEmpty && $val == '') {
             throw Util::HTTPException($key . ' empty');
@@ -280,7 +280,7 @@ class BaseCtrl {
             $key--;
         }
         
-        $val = array_key_exists($key, $this->param) ? $this->param[$key] : '';
+        $val = isset($this->param[$key]) ? $this->param[$key] : '';
         
         if ($notEmpty && $val == '') {
             throw Util::HTTPException($key . ' empty');

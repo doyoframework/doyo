@@ -10,7 +10,7 @@ class ShellDispatcher {
      */
     public function dispatch() {
 
-        if ((array_key_exists("argv", $_SERVER) && count($_SERVER['argv']) > 1)) {
+        if ((isset($_SERVER["argv"]) && count($_SERVER['argv']) > 1)) {
             $action = $_SERVER['argv'][1];
             
             if (preg_match('/^([a-z_]+)\.([a-z_]+)$/i', $action, $items)) {
