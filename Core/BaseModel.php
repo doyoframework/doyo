@@ -117,7 +117,7 @@ class BaseModel {
      */
     public final function __get($key) {
 
-        if (isset($this->entity[$key])) {
+        if (isset($this->entity->$key)) {
             
             if ($this->id <= 0) {
                 return false;
@@ -139,7 +139,7 @@ class BaseModel {
      */
     public final function __set($key, $val) {
 
-        if (isset($this->entity[$key])) {
+        if (isset($this->entity->$key)) {
             $this->__setter[$key] = $val;
         }
     
@@ -556,7 +556,15 @@ class BaseModel {
     
     }
 
-    public final function right($tab, $where, $field = '*', $limit = false) {
+    /**
+     *
+     * @param unknown $tab            
+     * @param unknown $on            
+     * @param string $where            
+     * @param string $field            
+     * @param string $limit            
+     */
+    public final function right($tab, $on, $where = false, $field = '*', $limit = false) {
 
         $tableA = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
         $tableB = strtolower(DB_DATA_PREFIX . $tab);
@@ -564,10 +572,11 @@ class BaseModel {
         if ($limit) {
             $limit = "limit {$limit}";
         }
+        if ($where) {
+            $where = "where {$where}";
+        }
         
-        $sql = "select {$field} from `{$tableA}` a right join `{$tableB}` b on {$where} {$limit};";
-        
-        // echo $sql;
+        $sql = "select {$field} from `{$tableA}` a right join `{$tableB}` b on {$on} {$where} {$limit};";
         
         $res = $this->db->query($sql);
         
@@ -588,7 +597,15 @@ class BaseModel {
     
     }
 
-    public final function left($tab, $where, $field = '*', $limit = false) {
+    /**
+     *
+     * @param unknown $tab            
+     * @param unknown $on            
+     * @param string $where            
+     * @param string $field            
+     * @param string $limit            
+     */
+    public final function left($tab, $on, $where = false, $field = '*', $limit = false) {
 
         $tableA = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
         $tableB = strtolower(DB_DATA_PREFIX . $tab);
@@ -597,9 +614,11 @@ class BaseModel {
             $limit = "limit {$limit}";
         }
         
-        $sql = "select {$field} from `{$tableA}` a left join `{$tableB}` b on {$where} {$limit};";
+        if ($where) {
+            $where = "where {$where}";
+        }
         
-        // echo $sql;
+        $sql = "select {$field} from `{$tableA}` a left join `{$tableB}` b on {$on} {$where} {$limit};";
         
         $res = $this->db->query($sql);
         
