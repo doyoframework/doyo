@@ -42,21 +42,6 @@ class FileEngine {
         $type = strtolower($type[1]);
         
         switch ($type) {
-            case 'image/gif' :
-                $stype = 'gif';
-                break;
-            case 'image/pjpeg' :
-                $stype = 'jpg';
-                break;
-            case 'image/jpeg' :
-                $stype = 'jpg';
-                break;
-            case 'image/x-png' :
-                $stype = 'png';
-                break;
-            case 'image/png' :
-                $stype = 'png';
-                break;
             
             case 'gif' :
                 $stype = 'gif';
@@ -96,6 +81,13 @@ class FileEngine {
                 $stype = 'rar';
                 break;
             
+            case 'mp3' :
+                $stype = 'mp3';
+                break;
+            case 'mp4' :
+                $stype = 'mp4';
+                break;
+            
             case 'application/x-shockwave-flash' :
                 $stype = 'swf';
                 break;
@@ -115,24 +107,18 @@ class FileEngine {
     }
 
     /**
-     *
-     * @param file $file            
-     *
-     * @param number $index            
-     *
-     * @param string $sort            
-     *
-     * @param number $maxW            
-     *
-     * @param number $maxH            
-     *
-     * @param number $minW            
-     *
-     * @param number $minH            
-     *
-     * @param boolean $lock            
-     *
-     * @return boolean
+     * @param $file
+     * @param $index
+     * @param string $sort
+     * @param int $part
+     * @param int $maxW
+     * @param int $maxH
+     * @param int $minW
+     * @param int $minH
+     * @param bool $lock
+     * @param bool $copy
+     * @return bool|string
+     * @throws \Exception\HTTPException
      */
     public function upload($file, $index, $sort = '/', $part = 0, $maxW = 0, $maxH = 0, $minW = 0, $minH = 0, $lock = true, $copy = false) {
 

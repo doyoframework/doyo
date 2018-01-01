@@ -12,8 +12,9 @@ class Util {
     /**
      * 根据类名获取该类的单例
      *
-     * @param string $className            
-     * @return Object
+     * @param $className
+     * @param string $tags
+     * @return mixed
      */
     public static function loadCls($className, $tags = '') {
 
@@ -29,8 +30,10 @@ class Util {
     /**
      * 根据类名获取该类的单例
      *
-     * @param string $className            
-     * @return BaseModel
+     * @param $className
+     * @param $entryName
+     * @param $id
+     * @return mixed
      */
     public static function loadModel($className, $entryName, $id) {
 
@@ -47,8 +50,10 @@ class Util {
     /**
      * 根据类名获取该类的单例
      *
-     * @param string $className            
-     * @return \Engine\RedisEngine
+     * @param $tags
+     * @param bool $config
+     * @return mixed
+     * @throws HTTPException
      */
     public static function loadRedis($tags, $config = false) {
 
@@ -72,7 +77,8 @@ class Util {
     /**
      * 加载Ctrl类
      *
-     * @return BaseCtrl
+     * @param $clsName
+     * @return mixed
      */
     public static function loadCtrl($clsName) {
 
@@ -82,6 +88,10 @@ class Util {
 
     /**
      * 抛出异常
+     *
+     * @param $errMsg
+     * @param null $errData
+     * @return HTTPException
      */
     public static function HTTPException($errMsg, $errData = null) {
 
@@ -91,6 +101,9 @@ class Util {
 
     /**
      * 拆分ID
+     *
+     * @param $id
+     * @return string
      */
     public static function id_path($id) {
         // str_pad
@@ -104,7 +117,11 @@ class Util {
     }
 
     /**
-     * 创建目录
+     * 递归创建目录
+     *
+     * @param $path
+     * @param int $mode
+     * @return bool|string
      */
     public static function mkdirs($path, $mode = 0755) {
 
@@ -128,9 +145,8 @@ class Util {
     /**
      * 按权重获取类型
      *
-     * @param array $weights
-     *            [type => weight]
-     * @return int
+     * @param $data
+     * @return int|string
      */
     private static function rand($data) {
 
@@ -152,8 +168,9 @@ class Util {
     /**
      * 按权重获取多个
      *
-     * @param array $weights            
-     * @param int $num            
+     * @param $data
+     * @param int $num
+     * @return array
      */
     public static function rands($data, $num = 1) {
 
@@ -178,8 +195,8 @@ class Util {
     /**
      * 按权重获取物品
      *
-     * @param array $data            
-     *
+     * @param $data
+     * @return mixed
      */
     public static function randItem($data) {
 
@@ -202,6 +219,12 @@ class Util {
 
     /**
      * 改变图片大小
+     *
+     * @param $path
+     * @param $maxW
+     * @param $maxH
+     * @param $npath
+     * @param $lcok
      */
     public static function resize($path, $maxW, $maxH, $npath, $lcok) {
 
@@ -269,6 +292,11 @@ class Util {
     
     }
 
+    /**
+     * 转换URL
+     *
+     * @return string
+     */
     public static function url() {
 
         $args = func_get_args();
@@ -283,6 +311,12 @@ class Util {
 
     /**
      * 通过curl获取远程文本内容
+     *
+     * @param $url
+     * @param $type
+     * @param bool $params
+     * @param array $header
+     * @return bool|mixed
      */
     public static function curl_request($url, $type, $params = false, $header = array()) {
 
@@ -326,6 +360,13 @@ class Util {
     
     }
 
+    /**
+     * 发送一个异步执行请求
+     *
+     * @param $ctrl
+     * @param $method
+     * @param $params
+     */
     public static function async($ctrl, $method, $params) {
 
         $client = new \swoole_client(SWOOLE_SOCK_TCP);
@@ -345,6 +386,9 @@ class Util {
 
     /**
      * 检查email格式是否合法
+     *
+     * @param $email
+     * @return bool
      */
     public static function check_email($email) {
 
@@ -358,6 +402,14 @@ class Util {
     
     }
 
+    /**
+     * 异步发送邮件
+     *
+     * @param $to
+     * @param $title
+     * @param $body
+     * @param array $attach
+     */
     public static function send_mail($to, $title, $body, $attach = array()) {
 
         Util::async('Engine\MailEngine', 'send', array (
@@ -371,6 +423,11 @@ class Util {
     
     }
 
+    /**
+     * 当前系统毫秒
+     *
+     * @return float
+     */
     public static function millisecond() {
 
         list ($usec, $sec) = explode(' ', microtime());
@@ -379,4 +436,3 @@ class Util {
     }
 
 }
-?>

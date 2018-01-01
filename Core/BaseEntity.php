@@ -4,4 +4,3 @@ namespace Core;
 class BaseEntity {
 
 }
-?>

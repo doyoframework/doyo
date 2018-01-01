@@ -1,8 +1,6 @@
 <?php
 namespace Core;
 
-use Core\Util;
-
 class BaseCtrl {
 
     /**
@@ -15,14 +13,14 @@ class BaseCtrl {
     /**
      * 保存param数组
      *
-     * @var Array
+     * @var array
      */
     private $param = array ();
 
     /**
      * 是否是表单提交
      *
-     * @var boole
+     * @var boolean
      */
     public $isPost = false;
 
@@ -42,6 +40,9 @@ class BaseCtrl {
 
     /**
      * 初始化Smarty配置
+     *
+     * @param null $template
+     * @param null $compile
      */
     public final function initSmarty($template = null, $compile = null) {
 
@@ -52,15 +53,15 @@ class BaseCtrl {
         $this->view->debugging = SMARTY_DEBUG;
         
         if ($template != null) {
-            $this->view->template_dir = APP_PATH . '/' . $template;
+            $this->view->setTemplateDir(APP_PATH . '/' . $template);
         } else {
-            $this->view->template_dir = APP_PATH . '/' . SMARTY_TEMPLATE_DIR;
+            $this->view->setTemplateDir(APP_PATH . '/' . SMARTY_TEMPLATE_DIR);
         }
         
         if ($compile != null) {
-            $this->view->compile_dir = APP_PATH . '/' . $compile;
+            $this->view->setCompileDir(APP_PATH . '/' . $compile);
         } else {
-            $this->view->compile_dir = APP_PATH . '/' . SMARTY_COMPILE_DIR;
+            $this->view->setCompileDir(APP_PATH . '/' . SMARTY_COMPILE_DIR);
         }
         
         $this->view->compile_check = SMARTY_COMPILE_CHECK;
@@ -69,9 +70,9 @@ class BaseCtrl {
         
         $this->view->right_delimiter = SMARTY_RIGHT_DELIMITER;
         
-        $this->view->config_dir = APP_PATH . '/' . WEBROOT . '/';
+        $this->view->joined_config_dir = APP_PATH . '/' . WEBROOT . '/';
         
-        if (defined('SMARTY_CONFIG_LOAD') && SMARTY_CONFIG_LOAD) {
+        if (defined('SMARTY_CONFIG_LOAD')) {
             $this->view->configLoad(SMARTY_CONFIG_LOAD);
         }
     
@@ -79,20 +80,21 @@ class BaseCtrl {
 
     /**
      * 设置Smarty的模板目录和编译目录
+     *
+     * @param $template
+     * @param $compile
      */
     public final function setSmarty($template, $compile) {
 
-        $this->view->template_dir = APP_PATH . '/' . $template;
-        $this->view->compile_dir = APP_PATH . '/' . $compile;
+        $this->view->setTemplateDir(APP_PATH . '/' . $template);
+        $this->view->setCompileDir(APP_PATH . '/' . $compile);
     
     }
 
     /**
-     * 初始化upload配置
+     * * 初始化upload配置
      *
      * @return \Engine\FileEngine
-     *
-     *
      */
     public final function initFiles() {
 
@@ -103,7 +105,8 @@ class BaseCtrl {
     /**
      * 设置参数
      *
-     * @return void
+     * @param $param
+     * @throws \Exception\HTTPException
      */
     public final function setParams($param) {
 
@@ -139,7 +142,11 @@ class BaseCtrl {
     /**
      * 查询传递的Integer参数
      *
-     * @return int
+     * @param $key
+     * @param bool $notEmpty
+     * @param bool $abs
+     * @return float|int|string
+     * @throws \Exception\HTTPException
      */
     protected final function getInteger($key, $notEmpty = false, $abs = false) {
 
@@ -147,9 +154,9 @@ class BaseCtrl {
             $key--;
         }
         
-        $val = isset($this->param[$key]) ? floatval($this->param[$key]) : '';
+        $val = isset($this->param[$key]) ? floatval($this->param[$key]) : false;
         
-        if ($notEmpty && $val === '') {
+        if ($notEmpty && $val === false) {
             throw Util::HTTPException($key . ' empty');
         }
         
@@ -162,40 +169,32 @@ class BaseCtrl {
     }
 
     /**
-     * 查询传递的String参数
+     * 查询传递的参数
      *
-     * @param string $key            
-     * @param boolean $notEmpty            
-     *
-     * @return boolean
+     * @param $key
+     * @return bool
      */
-    protected final function hasString($key, $notEmpty = false) {
+    protected final function hasParam($key) {
 
         if (is_numeric($key)) {
             $key--;
         }
-        
-        $val = '';
-        
-        if (isset($this->param[$key]) && is_string($this->param[$key])) {
-            $val = isset($this->param[$key]) ? trim($this->param[$key]) : '';
+
+        if (isset($this->param[$key])) {
+            return true;
         }
-        
-        if ($notEmpty && $val == '') {
-            return false;
-        }
-        
-        return !empty($val);
-    
+
+        return false;
+
     }
 
     /**
      * 查询传递的String参数
      *
-     * @param string $key            
-     * @param boolean $notEmpty            
-     *
+     * @param $key
+     * @param bool $notEmpty
      * @return string
+     * @throws \Exception\HTTPException
      */
     protected final function getString($key, $notEmpty = false) {
 
@@ -206,10 +205,10 @@ class BaseCtrl {
         $val = '';
         
         if (isset($this->param[$key]) && is_string($this->param[$key])) {
-            $val = isset($this->param[$key]) ? trim($this->param[$key]) : '';
+            $val = isset($this->param[$key]) ? trim($this->param[$key]) : false;
         }
         
-        if ($notEmpty && $val == '') {
+        if ($notEmpty && $val === false) {
             throw Util::HTTPException($key . ' empty');
         }
         
@@ -220,7 +219,11 @@ class BaseCtrl {
     /**
      * 查询传递的Integer数组参数
      *
-     * @return int[]
+     * @param $key
+     * @param bool $notEmpty
+     * @param bool $abs
+     * @return array|mixed|string
+     * @throws \Exception\HTTPException
      */
     protected final function getIntegers($key, $notEmpty = false, $abs = false) {
 
@@ -228,9 +231,9 @@ class BaseCtrl {
             $key--;
         }
         
-        $val = isset($this->param[$key]) ? $this->param[$key] : '';
+        $val = isset($this->param[$key]) ? $this->param[$key] : false;
         
-        if ($notEmpty && $val == '') {
+        if ($notEmpty && $val === false) {
             throw Util::HTTPException($key . ' empty');
         }
         
@@ -269,10 +272,10 @@ class BaseCtrl {
     /**
      * 查询传递的String数组参数
      *
-     * @param string $key            
-     * @param boolean $notEmpty            
-     *
-     * @return string[]
+     * @param $key
+     * @param bool $notEmpty
+     * @return array|mixed|string
+     * @throws \Exception\HTTPException
      */
     protected final function getStrings($key, $notEmpty = false) {
 
@@ -280,9 +283,9 @@ class BaseCtrl {
             $key--;
         }
         
-        $val = isset($this->param[$key]) ? $this->param[$key] : '';
+        $val = isset($this->param[$key]) ? $this->param[$key] : false;
         
-        if ($notEmpty && $val == '') {
+        if ($notEmpty && $val === false) {
             throw Util::HTTPException($key . ' empty');
         }
         
@@ -319,10 +322,8 @@ class BaseCtrl {
     /**
      * 设置$_SESSION内的值
      *
-     * @param string $key            
-     * @param object $val            
-     *
-     * @return void
+     * @param $key
+     * @param $val
      */
     protected final function setSession($key, $val) {
 
@@ -333,9 +334,8 @@ class BaseCtrl {
     /**
      * 查询$_SESSION内的值
      *
-     * @param string $key            
-     *
-     * @return object
+     * @param $key
+     * @return bool
      */
     protected final function getSession($key) {
 
@@ -349,9 +349,7 @@ class BaseCtrl {
     /**
      * 删除$_SESSION内的值
      *
-     * @param string $key            
-     *
-     * @return void
+     * @param $key
      */
     protected final function delSession($key) {
 
@@ -361,10 +359,6 @@ class BaseCtrl {
 
     /**
      * 清空$_SESSION内的值
-     *
-     * @param string $key            
-     *
-     * @return void
      */
     protected final function clearSession() {
 
@@ -375,10 +369,11 @@ class BaseCtrl {
     /**
      * 设置$_COOKIE内的值
      *
-     * @param string $key            
-     * @param object $val            
-     *
-     * @return void
+     * @param $key
+     * @param $val
+     * @param int $expire
+     * @param string $path
+     * @param string $domain
      */
     protected final function setCookie($key, $val, $expire = 86400, $path = '/', $domain = COOKIE_DOMAIN) {
 
@@ -391,27 +386,24 @@ class BaseCtrl {
     /**
      * 查询$_COOKIE内的值
      *
-     * @param string $key            
-     *
-     * @return object
+     * @param $key
+     * @return string
      */
     protected final function getCookie($key) {
 
         if (isset($_COOKIE[$key])) {
             return $_COOKIE[$key];
         }
-        return false;
+        return null;
     
     }
 
     /**
      * Curl POST提交
      *
-     * @param string $url            
-     * @param array $param            
-     * @param function $callback            
-     *
-     * @return void
+     * @param $url
+     * @param $param
+     * @return bool|mixed
      */
     public final function post($url, $param) {
 
@@ -421,6 +413,9 @@ class BaseCtrl {
 
     /**
      * Curl GET提交
+     *
+     * @param $url
+     * @return bool|mixed
      */
     public final function get($url) {
 
@@ -430,6 +425,10 @@ class BaseCtrl {
 
     /**
      * 向模板传递变量
+     *
+     * @param $tpl_var
+     * @param $value
+     * @param bool $nocache
      */
     public final function assign($tpl_var, $value, $nocache = false) {
 
@@ -439,6 +438,11 @@ class BaseCtrl {
 
     /**
      * 渲染模板
+     *
+     * @param $template
+     * @param null $cache_id
+     * @param null $compile_id
+     * @param null $parent
      */
     public final function display($template, $cache_id = null, $compile_id = null, $parent = null) {
 
@@ -452,6 +456,17 @@ class BaseCtrl {
 
     /**
      * 返回渲染的结果
+     *
+     * @param $template
+     * @param null $cache_id
+     * @param null $compile_id
+     * @param null $parent
+     * @param bool $display
+     * @param bool $merge_tpl_vars
+     * @param bool $no_output_filter
+     * @return string
+     * @throws \Exception
+     * @throws \SmartyException
      */
     public final function fetch($template, $cache_id = null, $compile_id = null, $parent = null, $display = false, $merge_tpl_vars = true, $no_output_filter = false) {
 
@@ -466,9 +481,7 @@ class BaseCtrl {
     /**
      * 重定向
      *
-     * @param string $key            
-     *
-     * @return void
+     * @param $url
      */
     public final function redirect($url) {
 
@@ -477,12 +490,18 @@ class BaseCtrl {
     
     }
 
+    /**
+     * 以JSON格式返回
+     */
     public final function display_json() {
 
         Context::dispatcher()->model = 'JSON';
     
     }
 
+    /**
+     * 以HTML格式返回
+     */
     public final function display_html() {
 
         Context::dispatcher()->model = 'HTML';
@@ -492,7 +511,8 @@ class BaseCtrl {
     /**
      * 获取客户端IP
      *
-     * @return string
+     * @param bool $long
+     * @return array|false|int|string
      */
     public final function ipaddr($long = true) {
 
@@ -536,10 +556,28 @@ class BaseCtrl {
     
     }
 
+    /**
+     * 长连接的文件描述
+     * @var int
+     */
     public $fd = -1;
 
+    /**
+     * 长连接的文件引用
+     *
+     * @var \SwooleServer
+     *
+     */
     public $svr = null;
 
+    /**
+     * 长连接发送数据
+     *
+     * @param $op
+     * @param $data
+     * @param int $fd
+     * @param int $code
+     */
     public final function send($op, $data, $fd = -1, $code = 1) {
 
         if ($fd === -1) {
@@ -554,7 +592,7 @@ class BaseCtrl {
             'data' => $data 
         );
         
-        $data = json_encode($array, true);
+        $data = json_encode($array, JSON_UNESCAPED_UNICODE);
         
         echo "\nsend {$fd}\n";
         
@@ -562,6 +600,12 @@ class BaseCtrl {
     
     }
 
+    /**
+     * 长连接返回数据
+     *
+     * @param $data
+     * @param int $fd
+     */
     public final function error($data, $fd = -1) {
 
         echo $data;
@@ -577,6 +621,11 @@ class BaseCtrl {
     
     }
 
+    /**
+     * 关闭一个文件描述
+     *
+     * @param int $fd
+     */
     public final function close($fd = -1) {
 
         if ($fd === -1) {
@@ -592,4 +641,3 @@ class BaseCtrl {
     }
 
 }
-?>

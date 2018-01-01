@@ -6,18 +6,19 @@ interface ITools {
     /**
      * 获得md5密码
      *
-     * @param string $passport            
-     * @param string $password            
+     * @param $passport
+     * @param $password
+     * @return mixed
      */
     public static function md5pswd($passport, $password);
 
     /**
      * 分页
      *
-     * @param object $data            
-     * @param string $url            
-     * @param array $args            
-     *
+     * @param $data
+     * @param $url
+     * @param null $args
+     * @return mixed
      */
     public static function paging($data, $url, $args = null);
 

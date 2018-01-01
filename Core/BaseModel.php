@@ -9,10 +9,8 @@ class BaseModel {
      * id
      *
      * @var int
-     *
-     *
      */
-    private $id;
+    private $id = 0;
 
     /**
      * 数据库
@@ -33,53 +31,51 @@ class BaseModel {
     /**
      * Entity
      *
-     * @var Entity\XX
-     *
-     *
+     * @var Object
      */
     private $entity;
 
     /**
      * 表名称
      *
-     * @var String
-     *
-     *
+     * @var
      */
     private $ENTITY_NAME;
 
     /**
      * 数据是否存在
+     *
+     * @var bool
      */
     public $exists = false;
 
     /**
      * 临时赋值的变量集合
      *
-     * @var String
-     *
-     *
+     * @var array
      */
     private $__setter = array ();
 
     /**
      * 最近一次查询结果集合
      *
-     * @var String
-     *
-     *
+     * @var array
      */
     private $__result = array ();
 
     /**
      * 最近一次查询结果集合的副本
      *
-     * @var String
-     *
-     *
+     * @var array
      */
     private $__result_clone = array ();
 
+    /**
+     * BaseModel constructor.
+     * @param $entity_name
+     * @param $id
+     * @throws \Exception\HTTPException
+     */
     public final function __construct($entity_name, $id) {
 
         $this->ENTITY_NAME = $entity_name;
@@ -114,9 +110,14 @@ class BaseModel {
 
     /**
      * 查询entity的key
+     *
+     * @param $key
+     * @return bool|mixed
+     * @throws \Exception\HTTPException
      */
     public final function __get($key) {
-
+        
+        // 必须是用array_key_exists，因为这个变量肯定没有被赋值，只是判断是否有这个变量
         if (array_key_exists($key, $this->entity)) {
             
             if ($this->id <= 0) {
@@ -136,9 +137,13 @@ class BaseModel {
 
     /**
      * 设置值
+     *
+     * @param $key
+     * @param $val
      */
     public final function __set($key, $val) {
-
+        
+        // 必须是用array_key_exists，因为这个变量肯定没有被赋值，只是判断是否有这个变量
         if (array_key_exists($key, $this->entity)) {
             $this->__setter[$key] = $val;
         }
@@ -156,13 +161,15 @@ class BaseModel {
 
     /**
      * 根据索引查询一条数据
+     *
+     * @param $primary_val
+     * @param string $field
+     * @return \Entity
      */
     public final function read($primary_val, $field = '*') {
 
         $this->id = $primary_val;
-        
-        $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
-        
+
         $primary_key = $this->entity->PRIMARY_KEY;
         
         $node = $this->node("where `{$primary_key}` = '{$primary_val}'", $field);
@@ -173,11 +180,12 @@ class BaseModel {
 
     /**
      * 根据索引删除一条数据
+     *
+     * @param bool $primary_val
+     * @throws \Exception\HTTPException
      */
     public final function remove($primary_val = false) {
 
-        $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
-        
         $primary_key = $this->entity->PRIMARY_KEY;
         
         if (!$primary_val) {
@@ -198,11 +206,13 @@ class BaseModel {
 
     /**
      * 根据索引更新一条数据
+     *
+     * @param bool $primary_val
+     * @param bool $array
+     * @throws \Exception\HTTPException
      */
     public final function alter($primary_val = false, $array = false) {
 
-        $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
-        
         $primary_key = $this->entity->PRIMARY_KEY;
         
         if (!$primary_val) {
@@ -235,6 +245,8 @@ class BaseModel {
 
     /**
      * 循环读取数据
+     *
+     * @return bool
      */
     public final function next() {
 
@@ -267,6 +279,10 @@ class BaseModel {
 
     /**
      * 直接执行一个sql
+     *
+     * @param $sql
+     * @param int $mode
+     * @return array|\mysqli_result|null
      */
     public final function query($sql, $mode = MYSQL_QUERY_FETCH) {
 
@@ -293,6 +309,10 @@ class BaseModel {
 
     /**
      * 增加一条数据
+     *
+     * @param bool $array
+     * @return array
+     * @throws \Exception\HTTPException
      */
     public final function insert($array = false) {
 
@@ -314,6 +334,9 @@ class BaseModel {
 
     /**
      * 更新数据
+     *
+     * @param $where
+     * @param $array
      */
     public final function update($where, $array) {
 
@@ -325,6 +348,8 @@ class BaseModel {
 
     /**
      * 删除数据
+     *
+     * @param $where
      */
     public final function delete($where) {
 
@@ -336,6 +361,10 @@ class BaseModel {
 
     /**
      * 根据条件查询一个字段
+     *
+     * @param $where
+     * @param $field
+     * @return mixed
      */
     public final function field($where, $field) {
 
@@ -348,9 +377,10 @@ class BaseModel {
     /**
      * 根据条件查询一条数据
      *
-     * @return \Entity
-     *
-     *
+     * @param $where
+     * @param string $field
+     * @param bool $cache
+     * @return array|mixed
      */
     public final function node($where, $field = '*', $cache = true) {
 
@@ -388,9 +418,13 @@ class BaseModel {
     /**
      * 查询发布的内容
      *
+     * @param $where
+     * @param $field
+     * @param $limit
+     * @param $page
+     * @param bool $offset
+     * @param string $order
      * @return array
-     *
-     *
      */
     public final function publish($where, $field, $limit, $page, $offset = false, $order = '') {
 
@@ -419,7 +453,7 @@ class BaseModel {
         }
         
         if (!is_numeric($page)) {
-            return false;
+            return array();
         }
         
         if (strpos(strtolower($where), ' group by ')) {
@@ -491,6 +525,13 @@ class BaseModel {
 
     /**
      * 查询
+     *
+     * @param string $where
+     * @param string $field
+     * @param bool $limit
+     * @param bool $page
+     * @param int $offset
+     * @return array
      */
     public final function select($where = 'where 1 = 1', $field = '*', $limit = false, $page = false, $offset = 0) {
 
@@ -515,16 +556,11 @@ class BaseModel {
     /**
      * 查询两个表
      *
-     * @access public
-     *        
-     * @param string $tabA            
-     * @param string $tabB            
-     * @param string $where            
-     * @param string $field            
-     * @param string $limit            
-     *
+     * @param $tab
+     * @param $where
+     * @param string $field
+     * @param bool $limit
      * @return array
-     *
      */
     public final function with($tab, $where, $field = '*', $limit = false) {
 
@@ -557,12 +593,12 @@ class BaseModel {
     }
 
     /**
-     *
-     * @param unknown $tab            
-     * @param unknown $on            
-     * @param string $where            
-     * @param string $field            
-     * @param string $limit            
+     * @param $tab
+     * @param $on
+     * @param bool $where
+     * @param string $field
+     * @param bool $limit
+     * @return array
      */
     public final function right($tab, $on, $where = false, $field = '*', $limit = false) {
 
@@ -598,12 +634,12 @@ class BaseModel {
     }
 
     /**
-     *
-     * @param unknown $tab            
-     * @param unknown $on            
-     * @param string $where            
-     * @param string $field            
-     * @param string $limit            
+     * @param $tab
+     * @param $on
+     * @param bool $where
+     * @param string $field
+     * @param bool $limit
+     * @return array
      */
     public final function left($tab, $on, $where = false, $field = '*', $limit = false) {
 
@@ -640,11 +676,10 @@ class BaseModel {
     }
 
     /**
-     * 查询表内的字段
+     * 查询当前表内的字段
      *
+     * @param string $field
      * @return array
-     *
-     *
      */
     public final function show_fields($field = '*') {
 
@@ -653,12 +688,22 @@ class BaseModel {
     
     }
 
+    /**
+     * 查询所有的表
+     *
+     * @param string $field
+     * @return array
+     */
     public final function show_tables($field = '*') {
 
         return $this->db->show_tables($field);
     
     }
 
+    /**
+     * 查询当前表的索引
+     * @return mixed
+     */
     public final function show_primary_key() {
 
         $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
@@ -668,4 +713,3 @@ class BaseModel {
     }
 
 }
-?>
