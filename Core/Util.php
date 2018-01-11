@@ -1,11 +1,10 @@
 <?php
 namespace Core;
 
+use Engine\RedisEngine;
 use Exception\HTTPException;
 
 class Util {
-
-    public static $connections = array ();
 
     private static $instances = array ();
 
@@ -14,7 +13,7 @@ class Util {
      *
      * @param $className
      * @param string $tags
-     * @return mixed
+     * @return object
      */
     public static function loadCls($className, $tags = '') {
 
@@ -33,7 +32,7 @@ class Util {
      * @param $className
      * @param $entryName
      * @param $id
-     * @return mixed
+     * @return BaseModel
      */
     public static function loadModel($className, $entryName, $id) {
 
@@ -52,7 +51,7 @@ class Util {
      *
      * @param $tags
      * @param bool $config
-     * @return mixed
+     * @return RedisEngine
      * @throws HTTPException
      */
     public static function loadRedis($tags, $config = false) {
@@ -78,7 +77,7 @@ class Util {
      * 加载Ctrl类
      *
      * @param $clsName
-     * @return mixed
+     * @return BaseCtrl
      */
     public static function loadCtrl($clsName) {
 
@@ -337,7 +336,6 @@ class Util {
         }
         
         // curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)'); // 伪造浏览器头
-        
         // curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         
         curl_setopt($ch, CURLOPT_HEADER, 0);

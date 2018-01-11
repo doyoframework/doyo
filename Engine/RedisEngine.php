@@ -86,13 +86,13 @@ class RedisEngine {
     /**
      * 增加指定键名的值并返回结果
      *
-     * @param string $key            
-     * @param int $step            
+     * @param $key
+     * @param int $step
      * @return int
      */
     public function increase($key, $step = 1) {
 
-        return $this->redis->incr($key, $step);
+        return $this->redis->incrBy($key, $step);
     
     }
 
@@ -125,6 +125,7 @@ class RedisEngine {
     /**
      * 查询所有的keys
      *
+     * @param $pattern
      * @return array
      */
     public function keys($pattern) {
@@ -298,7 +299,7 @@ class RedisEngine {
     /**
      * 获取服务器统计信息
      *
-     * @return array
+     * @return string
      */
     public function info() {
 
@@ -309,7 +310,7 @@ class RedisEngine {
     /**
      * 获取服务器统计信息
      *
-     * @return array
+     * @return int
      */
     public function dbSize() {
 
@@ -438,8 +439,9 @@ class RedisEngine {
     /**
      * 排序集合：删除元素
      *
-     * @param string $key            
-     * @param string $member            
+     * @param $key
+     * @param $member
+     * @return int
      */
     public function zRem($key, $member) {
 
@@ -450,13 +452,11 @@ class RedisEngine {
     /**
      * 排序集合：集合大小
      *
-     * @param string $key            
-     *
-     * @return int
+     * @param $key
      */
     public function zSize($key) {
 
-        return $this->redis->zSize($key);
+        $this->redis->zCard($key);
     
     }
 
@@ -538,23 +538,23 @@ class RedisEngine {
     /**
      * 集合：copy
      *
-     * @param string $keyDst            
-     * @param string $keySrc            
-     * @return int 成员数
+     * @param $keyDst
+     * @param $key1
+     * @param $key2
+     * @return int
      */
-    public function setCopy($keyDst, $keySrc) {
+    public function setCopy($keyDst, $key1, $key2) {
 
-        return (int) $this->redis->sUnionStore($keyDst, $keySrc);
+        return (int) $this->redis->sUnionStore($keyDst, $key1, $key2);
     
     }
 
     /**
      * 集合：元素是否存在
      *
-     * @param string $key            
-     * @param mixed $member            
-     *
-     * @return boolean
+     * @param $key
+     * @param $value
+     * @return bool
      */
     public function setIsMember($key, $value) {
 
@@ -571,7 +571,7 @@ class RedisEngine {
      */
     public function setSize($key) {
 
-        return $this->redis->sSize($key);
+        return $this->redis->sCard($key);
     
     }
 

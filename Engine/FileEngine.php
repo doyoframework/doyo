@@ -10,8 +10,9 @@ class FileEngine {
     /**
      * 验证文件大小
      *
+     * @param $file
+     * @param int $size
      * @return array
-     *
      */
     private function check_file_size($file, $size = FILE_SIZE) {
 
@@ -31,13 +32,11 @@ class FileEngine {
     /**
      * 验证文件类型
      *
+     * @param $name
      * @return array
-     *
      */
     public function check_file_type($name) {
 
-        $stype = '';
-        
         $type = explode('.', $name);
         $type = strtolower($type[1]);
         
@@ -107,6 +106,8 @@ class FileEngine {
     }
 
     /**
+     * 开始上传
+     *
      * @param $file
      * @param $index
      * @param string $sort
@@ -117,7 +118,7 @@ class FileEngine {
      * @param int $minH
      * @param bool $lock
      * @param bool $copy
-     * @return bool|string
+     * @return array|bool
      * @throws \Exception\HTTPException
      */
     public function upload($file, $index, $sort = '/', $part = 0, $maxW = 0, $maxH = 0, $minW = 0, $minH = 0, $lock = true, $copy = false) {
@@ -207,6 +208,12 @@ class FileEngine {
 
     /**
      * 删除图片
+     *
+     * @param $index
+     * @param $sort
+     * @param $part
+     * @param $type
+     * @throws \Exception\HTTPException
      */
     public function delete($index, $sort, $part, $type) {
 
@@ -258,6 +265,16 @@ class FileEngine {
     
     }
 
+    /**
+     * @param $data
+     * @param $index
+     * @param $sort
+     * @param $part
+     * @param $type
+     * @param bool $copy
+     * @return array
+     * @throws \Exception\HTTPException
+     */
     public function resave($data, $index, $sort, $part, $type, $copy = false) {
 
         $path = $this->set_file_path($index, $sort, $part, $type);
@@ -305,6 +322,9 @@ class FileEngine {
 
     /**
      * 判断是否是图片
+     *
+     * @param $type
+     * @return bool
      */
     private function is_image($type) {
 
@@ -320,23 +340,24 @@ class FileEngine {
     }
 
     /**
-     *
-     * @param file $file            
-     * @param string $path            
-     * @param number $maxW            
-     * @param number $maxH            
-     * @param number $minW            
-     * @param number $minH            
-     * @param boolean $lock            
-     *
+     * @param $file
+     * @param $path
+     * @param $maxW
+     * @param $maxH
+     * @param $minW
+     * @param $minH
+     * @param $lock
+     * @param $copy
+     * @return bool|mixed
      */
     private function do_upload($file, $path, $maxW, $maxH, $minW, $minH, $lock, $copy) {
         
         // 将文件以二进制读取到一个对象内
         $handle = fopen($file['tmp_name'], 'a+');
-        
+
+        $contents = '';
+
         if (flock($handle, LOCK_EX)) { // 进行排它型锁定
-            $contents = '';
             while ( !feof($handle) ) {
                 $contents .= fread($handle, 8192);
             }
@@ -368,8 +389,12 @@ class FileEngine {
     /**
      * 获得文件路径
      *
-     * @return string
-     *
+     * @param $index
+     * @param $sort
+     * @param $part
+     * @param $_type
+     * @return array
+     * @throws \Exception\HTTPException
      */
     public function set_file_path($index, $sort, $part, $_type) {
 
@@ -441,6 +466,9 @@ class FileEngine {
 
     /**
      * 删除远程文件
+     *
+     * @param $path
+     * @return bool|mixed
      */
     private function do_delete($path) {
 
@@ -454,6 +482,10 @@ class FileEngine {
 
     /**
      * xmlrpc client
+     *
+     * @param $method
+     * @param $args
+     * @return bool|mixed
      */
     private function xmlrpc_request($method, $args) {
 
@@ -500,11 +532,19 @@ class FileEngine {
 
     /**
      * 设置缩略图
+     *
+     * @param $path
+     * @param $ruleW
+     * @param $ruleH
+     * @param $npath
+     * @param bool $lock
      */
     private function _resave($path, $ruleW, $ruleH, $npath, $lock = true) {
 
         $iminfo = getimagesize($path);
-        
+
+        $im = null;
+
         switch ($iminfo[2]) {
             case 1 :
                 $im = imagecreatefromgif($path);
@@ -515,6 +555,8 @@ class FileEngine {
             case 3 :
                 $im = imagecreatefrompng($path);
                 break; /* png */
+            default :
+                break;
         }
         
         $resizeByW = $resizeByH = false;
@@ -555,17 +597,18 @@ class FileEngine {
         imagecopyresampled($imN, $im, 0, 0, 0, 0, $newW, $newH, $iminfo[0], $iminfo[1]);
         switch ($iminfo[2]) {
             case '1' :
-                $result = imagegif($imN, $npath);
+                imagegif($imN, $npath);
                 break;
             case '2' :
-                $result = imagejpeg($imN, $npath, 100);
+                imagejpeg($imN, $npath, 100);
                 break;
             case '3' :
-                $result = imagepng($imN, $npath);
+                imagepng($imN, $npath);
+                break;
+            default :
                 break;
         }
     
     }
 
 }
-?>

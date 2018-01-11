@@ -161,7 +161,7 @@ class HTTPDispatcher {
                 'unixtime' => Util::millisecond(), 
                 'data' => $data 
             );
-            echo json_encode($array);
+            echo json_encode($array, JSON_UNESCAPED_UNICODE);
         } else {
             if ($code == 0) {
                 echo '<pre>';
@@ -169,7 +169,7 @@ class HTTPDispatcher {
                 echo '</pre>';
             } else {
                 if (is_array($data)) {
-                    echo json_encode($data);
+                    echo json_encode($data, JSON_UNESCAPED_UNICODE);
                 } else {
                     echo $data;
                 }
