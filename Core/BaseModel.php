@@ -118,10 +118,6 @@ class BaseModel
         // 必须是用array_key_exists，因为这个变量肯定没有被赋值，只是判断是否有这个变量
         if (array_key_exists($key, $this->entity)) {
 
-            if ($this->entity->PRIMARY_VAL <= 0) {
-                return false;
-            }
-
             if (isset($this->__setter[$key])) {
                 return $this->__setter[$key];
             }
@@ -164,15 +160,17 @@ class BaseModel
      * 根据索引查询一条数据
      *
      * @param $primary_val
-     * @param bool $cache
+     * @param int $expires
      * @return array|mixed
      */
-    public final function read($primary_val, $cache = false)
+    public final function read($primary_val, $expires = 0)
     {
 
-        $this->entity->PRIMARY_VAL = $primary_val;
+        $node = $this->node("where `{$this->entity->PRIMARY_KEY}` = '{$primary_val}'", '*', $expires);
 
-        $node = $this->node("where `{$this->entity->PRIMARY_KEY}` = '{$this->entity->PRIMARY_VAL}'", '*', $cache);
+        if (isset($node[$this->entity->PRIMARY_KEY])) {
+            $this->entity->PRIMARY_VAL = $primary_val;
+        }
 
         return $node;
 
@@ -191,6 +189,8 @@ class BaseModel
         }
 
         $status = $this->delete("where `{$this->entity->PRIMARY_KEY}` = '{$this->entity->PRIMARY_VAL}'");
+
+        $this->entity = Util::loadCls('Entity\\' . $this->ENTITY_NAME);
 
         $this->__setter = array();
 
@@ -216,10 +216,6 @@ class BaseModel
 
         $status = $this->update("where `{$this->entity->PRIMARY_KEY}` = '{$this->entity->PRIMARY_VAL}'", $this->__setter);
 
-        foreach ($this->__setter as $k => $v) {
-            $this->entity->$k = $v;
-        }
-
         $this->__setter = array();
 
         return $status;
@@ -242,8 +238,10 @@ class BaseModel
         }
 
         foreach ($this->entity as $key => $val) {
-            if ($key != 'PRIMARY_KEY' && isset($node[$key])) {
+            if (isset($node[$key])) {
                 $this->entity->$key = $node[$key];
+            } else if ($key == 'PRIMARY_KEY' && isset($node[$this->entity->PRIMARY_KEY])) {
+                $this->entity->PRIMARY_VAL = $node[$this->entity->PRIMARY_KEY];
             }
         }
         return true;
@@ -296,20 +294,20 @@ class BaseModel
     /**
      * 增加一条数据
      *
-     * @param bool $array
+     * @param array $array
      * @return array
      * @throws \Exception\HTTPException
      */
-    public final function insert($array = false)
+    public final function insert($array = array())
     {
 
         $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
 
-        if (!$array && $this->__setter) {
+        if (empty($array) && $this->__setter) {
             $array = $this->__setter;
         }
 
-        if (!$array) {
+        if (empty($array)) {
             throw Util::HTTPException('data is null.');
         }
 
@@ -324,6 +322,7 @@ class BaseModel
      *
      * @param $where
      * @param $array
+     * @return int
      */
     public final function update($where, $array)
     {
@@ -369,32 +368,29 @@ class BaseModel
      *
      * @param $where
      * @param string $field
-     * @param bool $cache
+     * @param int $expires
      * @return array|mixed
      */
-    public final function node($where, $field = '*', $cache = true)
+    public final function node($where, $field = '*', $expires = 0)
     {
 
         $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
 
-        $cache_key = md5($table . '-' . $where . '-' . $field);
+        $cache_key = md5(md5($table) . md5($where) . md5($field));
 
-        if (isset($GLOBALS['REDIS']['cache']) && $cache) {
-            if ($this->cache->exists($cache_key)) {
-                $node = json_decode($this->cache->get($cache_key), true);
-            } else {
-                $node = $this->db->node($table, $where, $field);
-                $this->cache->set($cache_key, json_encode($node, true), 5);
-            }
+        if (isset($GLOBALS['REDIS']['cache']) && $expires > 0 && $this->cache->exists($cache_key)) {
+            $node = json_decode($this->cache->get($cache_key), true);
         } else {
             $node = $this->db->node($table, $where, $field);
+            $this->cache->set($cache_key, json_encode($node, JSON_UNESCAPED_UNICODE), $expires);
         }
 
-        if ($node && isset($node[$this->entity->PRIMARY_KEY])) {
-            $this->entity->PRIMARY_VAL = $node[$this->entity->PRIMARY_KEY];
+        if (!empty($node)) {
             foreach ($this->entity as $key => $val) {
-                if ($key != 'PRIMARY_KEY' && isset($node[$key])) {
+                if (isset($node[$key])) {
                     $this->entity->$key = $node[$key];
+                } else if ($key == 'PRIMARY_KEY' && isset($node[$this->entity->PRIMARY_KEY])) {
+                    $this->entity->PRIMARY_VAL = $node[$this->entity->PRIMARY_KEY];
                 }
             }
             $this->exists = true;
@@ -421,8 +417,6 @@ class BaseModel
     {
 
         $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
-        $this->__result = array();
-        $this->__result_clone = array();
 
         $where = trim($where);
 
@@ -463,8 +457,6 @@ class BaseModel
 
         // pcount
         $pcount = ceil($rcount / $limit);
-
-        $_PAGE = $page;
 
         if ($page <= 1) {
             $page = 1;
@@ -529,8 +521,6 @@ class BaseModel
     {
 
         $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
-        $this->__result = array();
-        $this->__result_clone = array();
 
         $data = $this->db->select($table, $where, $field, $limit, $page, $offset);
 

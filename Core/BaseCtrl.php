@@ -358,7 +358,7 @@ class BaseCtrl
         }
 
         if ($notEmpty) {
-            throw Util::HTTPException($key . 'error.');
+            throw Util::HTTPException($key . ' error.');
         }
 
         return false;
@@ -648,8 +648,6 @@ class BaseCtrl
         );
 
         $data = json_encode($array, JSON_UNESCAPED_UNICODE);
-
-        echo "\nsend {$fd}\n";
 
         return $this->svr->push($fd, $data);
 
