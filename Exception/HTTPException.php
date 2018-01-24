@@ -1,7 +1,9 @@
 <?php
+
 namespace Exception;
 
-class HTTPException extends \Exception {
+class HTTPException extends \Exception
+{
 
     /**
      * 扩展信息
@@ -10,14 +12,15 @@ class HTTPException extends \Exception {
      */
     private $data = null;
 
-    public function __construct($message, $data = null) {
+    public function __construct($message, $data = null)
+    {
 
         if ($data != null) {
             $this->data = $data;
         }
-        
+
         parent::__construct($message);
-    
+
     }
 
     /**
@@ -25,11 +28,11 @@ class HTTPException extends \Exception {
      *
      * @return array
      */
-    public function getData() {
+    public function getData()
+    {
 
         return $this->data;
-    
+
     }
 
 }
-?>
