@@ -93,11 +93,21 @@ class Context
      *
      *
      */
-    public static function dispatcher()
+    public static function HttpDispatcher()
     {
 
         return Util::loadCls('Dispatcher\HTTPDispatcher');
 
+    }
+
+    /**
+     * ShellDispatcher
+     *
+     * @return \Dispatcher\ShellDispatcher
+     */
+    public static function ShellDispatcher()
+    {
+        return Util::loadCls('Dispatcher\ShellDispatcher');
     }
 
     /**

@@ -1,18 +1,23 @@
 <?php
+
 namespace Dispatcher;
 
 use Core\Util;
 
-class ShellDispatcher {
+class ShellDispatcher
+{
 
     /**
      * 分发器
+     *
+     * @throws \Exception\HTTPException
      */
-    public function dispatch() {
+    public function dispatch()
+    {
 
         if ((isset($_SERVER["argv"]) && count($_SERVER['argv']) > 1)) {
             $action = $_SERVER['argv'][1];
-            
+
             if (preg_match('/^([a-z_]+)\.([a-z_]+)$/i', $action, $items)) {
                 $ctrlName = $items[1];
                 $methodName = $items[2];
@@ -21,20 +26,19 @@ class ShellDispatcher {
                 echo "\n";
                 exit();
             }
-            
-            $className = "Ctrl\\" . $ctrlName;
-            
-            $ctrl = Util::loadCls($className);
-            
-            $params = array ();
+
+            $ctrl = Util::loadCtrl($ctrlName);
+
+            $params = array();
             if (count($_SERVER['argv']) >= 3) {
                 $params = array_slice($_SERVER['argv'], 2);
             }
-            
-            call_user_method_array($methodName, $ctrl, $params);
+
+            $ctrl->setParams($params);
+
+            call_user_func_array([$ctrl, $methodName], $params);
         }
-    
+
     }
 
 }
-?>

@@ -98,18 +98,6 @@ class BaseCtrl
     }
 
     /**
-     * * 初始化upload配置
-     *
-     * @return \Engine\FileEngine
-     */
-    public final function initFiles()
-    {
-
-        return Util::loadCls('Engine\FileEngine');
-
-    }
-
-    /**
      * 设置参数
      *
      * @param $param
@@ -176,6 +164,35 @@ class BaseCtrl
 
         return $val;
 
+    }
+
+    /**
+     * @param $key
+     * @param bool $notEmpty
+     * @return bool
+     * @throws \Exception\HTTPException
+     */
+    protected final function getBoolean($key, $notEmpty = false)
+    {
+        if (is_numeric($key)) {
+            $key--;
+        }
+
+        if (!isset($this->param[$key]) && $notEmpty) {
+            throw Util::HTTPException($key . ' empty');
+        }
+
+        if (!is_numeric($this->param[$key])) {
+            if (strtolower($this->param[$key]) == 'true') {
+                return true;
+            }
+        } else {
+            if ($this->param[$key] > 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -532,7 +549,7 @@ class BaseCtrl
     public final function display_json()
     {
 
-        Context::dispatcher()->model = 'JSON';
+        Context::HttpDispatcher()->model = 'JSON';
 
     }
 
@@ -542,7 +559,7 @@ class BaseCtrl
     public final function display_html()
     {
 
-        Context::dispatcher()->model = 'HTML';
+        Context::HttpDispatcher()->model = 'HTML';
 
     }
 
@@ -556,13 +573,13 @@ class BaseCtrl
     {
         if ($this->fd > 0 && $this->svr != null) {
 
-            $ipaddr = $this->svr->connection_info($this->fd);
+            $info = $this->svr->connection_info($this->fd);
 
-            if (isset($ipaddr['remote_ip'])) {
+            if (isset($info['remote_ip'])) {
                 if ($long) {
-                    return ip2long($ipaddr['remote_ip']);
+                    return ip2long($info['remote_ip']);
                 }
-                return $ipaddr['remote_ip'];
+                return $info['remote_ip'];
             } else {
                 if ($long) {
                     return 0;
@@ -591,7 +608,7 @@ class BaseCtrl
 
         if (strchr($ipaddr, ',')) {
             $ipaddr = explode(',', $ipaddr);
-            $ipaddr = $ipaddr[count($ipaddr) - 1];
+            $ipaddr = array_pop($ipaddr);
         }
 
         $ipaddr = ltrim($ipaddr);
@@ -601,7 +618,6 @@ class BaseCtrl
         }
 
         return $ipaddr;
-
     }
 
     /**
@@ -627,11 +643,17 @@ class BaseCtrl
      * @param int $code
      * @return mixed
      */
-    public final function send($op, $data, $fd = -1, $code = 1)
+    public final function send($op, $data = array(), $fd = -1, $code = 1)
     {
 
         if ($fd === -1) {
             $fd = $this->fd;
+        }
+
+        if (!is_numeric($fd)) {
+            echo " fd error. \n";
+            print_r($fd);
+            return false;
         }
 
         if (!$this->svr->exist($fd)) {
@@ -662,13 +684,6 @@ class BaseCtrl
     public final function error($data, $fd = -1)
     {
 
-        echo $data;
-        echo "\n";
-
-        if ($fd === -1) {
-            $fd = $this->fd;
-        }
-
         $this->send(-1, array(
             'message' => $data
         ), $fd, 0);
@@ -680,12 +695,16 @@ class BaseCtrl
      * 绑定UID
      *
      * @param $pid
+     * @throws \Exception\HTTPException
      */
     public final function connection_bind($pid)
     {
 
-        $this->svr->bind($this->fd, $pid);
-
+        if ($this->svr->exist($this->fd)) {
+            $this->svr->bind($this->fd, $pid);
+        } else {
+            throw Util::HTTPException('fd not connect');
+        }
     }
 
     /**
@@ -700,7 +719,11 @@ class BaseCtrl
             $fd = $this->fd;
         }
 
-        return $this->svr->connection_info($fd);
+        if ($this->svr->exist($fd)) {
+            return $this->svr->connection_info($fd);
+        }
+
+        return array();
     }
 
     /**

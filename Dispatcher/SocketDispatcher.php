@@ -14,7 +14,6 @@ class SocketDispatcher
      * @param $fd
      * @param $op
      * @param array $param
-     * @param null $request
      * @throws \Exception\HTTPException
      */
     public function dispatch(&$svr, $fd, $op, $param = array())

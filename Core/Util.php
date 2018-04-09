@@ -1,50 +1,50 @@
 <?php
+
 namespace Core;
 
 use Engine\RedisEngine;
 use Exception\HTTPException;
 
-class Util {
+class Util
+{
 
-    private static $instances = array ();
+    private static $instances = array();
 
     /**
      * 根据类名获取该类的单例
      *
-     * @param $className
+     * @param $class_name
      * @param string $tags
      * @return object
      */
-    public static function loadCls($className, $tags = '') {
-
-        if (!isset(self::$instances[$className . '_' . $tags])) {
-            self::$instances[$className . '_' . $tags] = new $className();
+    public static function loadCls($class_name, $tags = '')
+    {
+        if (!isset(self::$instances[$class_name . '_' . $tags])) {
+            self::$instances[$class_name . '_' . $tags] = new $class_name();
         }
-        return self::$instances[$className . '_' . $tags];
-    
+        return self::$instances[$class_name . '_' . $tags];
     }
 
-    private static $models = array ();
+    private static $models = array();
 
     /**
      * 根据类名获取该类的单例
      *
-     * @param $className
-     * @param $entryName
+     * @param $class_name
+     * @param $entry_name
      * @param $id
      * @return BaseModel
      */
-    public static function loadModel($className, $entryName, $id) {
-
-        if (!isset(self::$models[$className . '_' . $id])) {
-            self::$models[$className . '_' . $id] = new $className($entryName, $id);
+    public static function loadModel($class_name, $entry_name, $id)
+    {
+        if (!isset(self::$models[$class_name . '_' . $id])) {
+            self::$models[$class_name . '_' . $id] = new $class_name($entry_name, $id);
         }
-        
-        return self::$models[$className . '_' . $id];
-    
+
+        return self::$models[$class_name . '_' . $id];
     }
 
-    private static $redis = array ();
+    private static $redis = array();
 
     /**
      * 根据类名获取该类的单例
@@ -54,7 +54,8 @@ class Util {
      * @return RedisEngine
      * @throws HTTPException
      */
-    public static function loadRedis($tags, $config = false) {
+    public static function loadRedis($tags, $config = false)
+    {
 
         if ($config === false) {
             if (!isset($GLOBALS['REDIS'][$tags])) {
@@ -62,15 +63,15 @@ class Util {
             }
             $config = $GLOBALS['REDIS'][$tags];
         }
-        
+
         if (!isset(self::$redis[$tags])) {
             $className = 'Engine\\RedisEngine';
             self::$redis[$tags] = new $className();
             self::$redis[$tags]->connect($config['host'], $config['port'], $config['timeout'], $config['database'], $config['pconnect'], $config['password']);
         }
-        
+
         return self::$redis[$tags];
-    
+
     }
 
     /**
@@ -79,10 +80,36 @@ class Util {
      * @param $clsName
      * @return BaseCtrl
      */
-    public static function loadCtrl($clsName) {
+    public static function loadCtrl($clsName)
+    {
 
         return Util::loadCls("Ctrl\\{$clsName}");
-    
+
+    }
+
+
+    /**
+     * * 初始化upload配置
+     *
+     * @return \Engine\FileEngine
+     */
+    public static function initFiles()
+    {
+
+        return Util::loadCls('Engine\FileEngine');
+
+    }
+
+    /**
+     * 加载短信发送类
+     *
+     * @return \Alisms
+     */
+    public static function loadSms()
+    {
+
+        return Util::loadCls("Alisms");
+
     }
 
     /**
@@ -92,10 +119,11 @@ class Util {
      * @param null $errData
      * @return HTTPException
      */
-    public static function HTTPException($errMsg, $errData = null) {
+    public static function HTTPException($errMsg, $errData = null)
+    {
 
         return new HTTPException($errMsg, $errData);
-    
+
     }
 
     /**
@@ -104,7 +132,8 @@ class Util {
      * @param $id
      * @return string
      */
-    public static function id_path($id) {
+    public static function id_path($id)
+    {
         // str_pad
         $pathNum = 1000000000 + $id;
         $pathNumA = substr($pathNum, 1, 3);
@@ -112,7 +141,7 @@ class Util {
         $pathNumC = substr($pathNum, 7, 3);
         $user_path = $pathNumA . '/' . $pathNumB . '/' . $pathNumC;
         return $user_path;
-    
+
     }
 
     /**
@@ -122,14 +151,15 @@ class Util {
      * @param int $mode
      * @return bool|string
      */
-    public static function mkdirs($path, $mode = 0755) {
+    public static function mkdirs($path, $mode = 0755)
+    {
 
         $dirs = explode('/', $path);
         $dirslen = count($dirs);
         $state = '';
-        for($c = 0; $c < $dirslen; $c++) {
+        for ($c = 0; $c < $dirslen; $c++) {
             $thispath = '';
-            for($cc = 0; $cc <= $c; $cc++) {
+            for ($cc = 0; $cc <= $c; $cc++) {
                 $thispath .= $dirs[$cc] . '/';
             }
             if (!@file_exists($thispath)) {
@@ -138,7 +168,7 @@ class Util {
             }
         }
         return $state;
-    
+
     }
 
     /**
@@ -147,21 +177,22 @@ class Util {
      * @param $data
      * @return int|string
      */
-    private static function rand($data) {
+    private static function rand($data)
+    {
 
         $rd = rand(1, array_sum($data));
         $rv = 0;
-        
-        foreach ( $data as $type => $odds ) {
+
+        foreach ($data as $type => $odds) {
             $rv += $odds;
-            
+
             if ($rd <= $rv) {
                 return $type;
             }
         }
-        
+
         return 0;
-    
+
     }
 
     /**
@@ -171,24 +202,25 @@ class Util {
      * @param int $num
      * @return array
      */
-    public static function rands($data, $num = 1) {
+    public static function rands($data, $num = 1)
+    {
 
-        $items = array ();
-        
-        while ( $num ) {
+        $items = array();
+
+        while ($num) {
             $item = self::rand($data);
-            
+
             if ($item)
                 $items[] = $item;
             else
                 break;
-            
+
             unset($data[$item]);
             $num--;
         }
-        
+
         return $items;
-    
+
     }
 
     /**
@@ -197,23 +229,23 @@ class Util {
      * @param $data
      * @return mixed
      */
-    public static function randItem($data) {
+    public static function randItem($data)
+    {
 
-        $items = array ();
         $num = 0;
-        foreach ( $data as $item ) {
+        foreach ($data as $item) {
             $num += $item[2];
         }
-        
+
         $rd = rand(1, $num);
         $rv = 0;
-        foreach ( $data as $item ) {
+        foreach ($data as $item) {
             $rv += $item[2];
             if ($rd <= $rv) {
                 return $item;
             }
         }
-    
+
     }
 
     /**
@@ -223,12 +255,14 @@ class Util {
      * @param $maxW
      * @param $maxH
      * @param $npath
-     * @param $lcok
+     * @param $lock
+     * @param int $quality
      */
-    public static function resize($path, $maxW, $maxH, $npath, $lcok) {
+    public static function resize($path, $maxW, $maxH, $npath, $lock, $quality = 100)
+    {
 
         $iminfo = getimagesize($path);
-        
+
         switch ($iminfo[2]) {
             case 1 :
                 $im = imagecreatefromgif($path);
@@ -240,23 +274,23 @@ class Util {
                 $im = imagecreatefrompng($path);
                 break; /* png */
         }
-        
+
         $resizeByW = $resizeByH = false;
-        
+
         if ($iminfo[0] > $maxW && $maxW) {
             $resizeByW = true;
         }
         if ($iminfo[1] > $maxH && $maxH) {
             $resizeByH = true;
         }
-        
+
         if ($resizeByH && $resizeByW) {
             $resizeByH = ($iminfo[0] / $maxW < $iminfo[1] / $maxH);
             $resizeByW = !$resizeByH;
         }
-        
+
         if ($resizeByW) {
-            if ($lcok) {
+            if ($lock) {
                 $newW = $maxW;
                 $newH = round(($iminfo[1] * $maxW) / $iminfo[0]);
             } else {
@@ -264,7 +298,7 @@ class Util {
                 $newH = $iminfo[1];
             }
         } else if ($resizeByH) {
-            if ($lcok) {
+            if ($lock) {
                 $newW = round(($iminfo[0] * $maxH) / $iminfo[1]);
                 $newH = $maxH;
             } else {
@@ -279,16 +313,16 @@ class Util {
         imagecopyresampled($imN, $im, 0, 0, 0, 0, $newW, $newH, $iminfo[0], $iminfo[1]);
         switch ($iminfo[2]) {
             case '1' :
-                $result = imagegif($imN, $npath);
+                imagegif($imN, $npath);
                 break;
             case '2' :
-                $result = imagejpeg($imN, $npath, 100);
+                imagejpeg($imN, $npath, $quality);
                 break;
             case '3' :
-                $result = imagepng($imN, $npath);
+                imagepng($imN, $npath);
                 break;
         }
-    
+
     }
 
     /**
@@ -296,16 +330,17 @@ class Util {
      *
      * @return string
      */
-    public static function url() {
+    public static function url()
+    {
 
         $args = func_get_args();
         $url = array_shift($args);
-        foreach ( $args as $param ) {
+        foreach ($args as $param) {
             $url .= '/' . $param;
         }
-        
+
         return REWRITE . $url;
-    
+
     }
 
     /**
@@ -317,45 +352,46 @@ class Util {
      * @param array $header
      * @return bool|mixed
      */
-    public static function curl_request($url, $type, $params = false, $header = array()) {
+    public static function curl_request($url, $type, $params = false, $header = array())
+    {
 
         $ch = curl_init();
-        
+
         $timeout = 30;
-        
+
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
-        
+
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-        
+
         if (count($header) > 0) {
             curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         }
-        
+
         // curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)'); // 伪造浏览器头
         // curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        
+
         curl_setopt($ch, CURLOPT_HEADER, 0);
-        
+
         if (strtoupper($type) == 'POST') {
             curl_setopt($ch, CURLOPT_POST, 1);
             if ($params) {
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
             }
         }
-        
+
         $response = curl_exec($ch);
         curl_close($ch);
-        
+
         if ($response === false) {
             return false;
         }
-        
+
         return $response;
-    
+
     }
 
     /**
@@ -365,21 +401,22 @@ class Util {
      * @param $method
      * @param $params
      */
-    public static function async($ctrl, $method, $params) {
+    public static function async($ctrl, $method, $params)
+    {
 
         $client = new \swoole_client(SWOOLE_SOCK_TCP);
-        
+
         $client->connect('127.0.0.1', 9501);
-        
-        $client->send(json_encode(array (
-            'method' => 'process', 
-            'params' => array (
-                'ctrl' => $ctrl, 
-                'method' => $method, 
-                'params' => $params 
-            ) 
-        )));
-    
+
+        $client->send(json_encode(array(
+            'method' => 'process',
+            'params' => array(
+                'ctrl' => $ctrl,
+                'method' => $method,
+                'params' => $params
+            )
+        ), JSON_UNESCAPED_UNICODE));
+
     }
 
     /**
@@ -388,16 +425,17 @@ class Util {
      * @param $email
      * @return bool
      */
-    public static function check_email($email) {
+    public static function check_email($email)
+    {
 
         $pattern = '/^([0-9a-z\-_\.]+)@([0-9a-z]+\.[a-z]{2,30}(\.[a-z]{2,30})?)$/i';
-        
+
         if (preg_match($pattern, $email)) {
             return true;
         } else {
             return false;
         }
-    
+
     }
 
     /**
@@ -408,17 +446,18 @@ class Util {
      * @param $body
      * @param array $attach
      */
-    public static function send_mail($to, $title, $body, $attach = array()) {
+    public static function send_mail($to, $title, $body, $attach = array())
+    {
 
-        Util::async('Engine\MailEngine', 'send', array (
-            $to, 
-            $title, 
-            $body, 
-            $attach 
+        Util::async('Engine\MailEngine', 'send', array(
+            $to,
+            $title,
+            $body,
+            $attach
         ));
-        
+
         file_put_contents('/tmp/swoole.process.log', 'mail send: ' . $title . "\n\n\n", FILE_APPEND);
-    
+
     }
 
     /**
@@ -426,11 +465,58 @@ class Util {
      *
      * @return float
      */
-    public static function millisecond() {
+    public static function millisecond()
+    {
 
         list ($usec, $sec) = explode(' ', microtime());
-        return (float) sprintf('%.0f', (floatval($usec) + floatval($sec)) * 1000);
-    
+        return (float)sprintf('%.0f', (floatval($usec) + floatval($sec)) * 1000);
+
     }
 
+    /**
+     * @param $list
+     * @param $limit
+     * @param $page
+     * @param $offset
+     * @return array
+     */
+    public static function page(&$list, $limit, $page, $offset = 0)
+    {
+
+        $rcount = count($list);
+
+        $pcount = ceil($rcount / $limit);
+
+        if ($page < 1) {
+            $page = 1;
+        } else if ($page > $pcount) {
+            $page = $pcount;
+        }
+
+        $next = $page + 1;
+        $prev = $page - 1;
+
+        if ($next > $pcount) {
+            $next = $pcount;
+        }
+
+        if ($prev < 1) {
+            $prev = 1;
+        }
+
+        $_offset = (($page - 1) * $limit) + $offset;
+
+        $dataArray = array_slice($list, $_offset, $limit);
+
+        $array = array();
+        $array['data'] = $dataArray;
+        $array['limit'] = $limit;
+        $array['page'] = $page;
+        $array['rcount'] = $rcount;
+        $array['pcount'] = $pcount;
+        $array['next'] = $next;
+        $array['prev'] = $prev;
+
+        return $array;
+    }
 }

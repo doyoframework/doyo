@@ -11,7 +11,7 @@ class BaseModel
      * @var \Engine\MySQLi
      *
      */
-    private $db;
+    private $mysql;
 
     /**
      * Redis
@@ -19,7 +19,7 @@ class BaseModel
      * @var \Engine\RedisEngine
      *
      */
-    private $cache;
+    private $redis;
 
     /**
      * Entity
@@ -34,6 +34,13 @@ class BaseModel
      * @var
      */
     private $ENTITY_NAME;
+
+    /**
+     * 初始参数
+     *
+     * @var
+     */
+    protected $PRIMARY_VAL;
 
     /**
      * 数据是否存在
@@ -74,6 +81,7 @@ class BaseModel
 
     /**
      * BaseModel constructor.
+     *
      * @param $entity_name
      * @param $primary_val
      * @throws \Exception\HTTPException
@@ -83,21 +91,24 @@ class BaseModel
 
         $this->ENTITY_NAME = $entity_name;
 
-        $this->db = Util::loadCls('Engine\MySQLi');
-        $this->db->connect(DB_HOST, DB_USER, DB_PSWD, DB_NAME, DB_PORT, CHARSET, 'false');
+        $this->PRIMARY_VAL = $primary_val;
 
         if (isset($GLOBALS['REDIS']['cache'])) {
-            $this->cache = Util::loadRedis('cache');
+            $this->redis = Util::loadRedis('cache');
         }
 
         $entity = APP_PATH . '/Entity/' . $this->ENTITY_NAME . '.php';
 
         if (file_exists($entity)) {
             $this->entity = Util::loadCls('Entity\\' . $this->ENTITY_NAME, $primary_val);
-        }
 
-        if ($primary_val) {
-            $this->read($primary_val);
+            $this->mysql = Util::loadCls('Engine\MySQLi');
+
+            $this->mysql->connect($this->entity->DB_CONFIG);
+
+            if ($primary_val) {
+                $this->read($primary_val);
+            }
         }
 
         $this->__initialize();
@@ -157,11 +168,10 @@ class BaseModel
     }
 
     /**
-     * 根据索引查询一条数据
-     *
      * @param $primary_val
      * @param int $expires
      * @return array|mixed
+     * @throws \Exception\HTTPException
      */
     public final function read($primary_val, $expires = 0)
     {
@@ -250,27 +260,28 @@ class BaseModel
 
     /**
      * 清空表（慎用）
+     *
+     * @throws \Exception\HTTPException
      */
     public final function truncate()
     {
 
-        $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
+        $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
-        $this->db->query("truncate {$table};");
+        $this->mysql->query("truncate {$table};");
 
     }
 
     /**
-     * 直接执行一个sql
-     *
      * @param $sql
      * @param int $mode
-     * @return array|\mysqli_result|null
+     * @return array|bool|\mysqli_result|null
+     * @throws \Exception\HTTPException
      */
     public final function query($sql, $mode = MYSQL_QUERY_FETCH)
     {
 
-        $res = $this->db->query($sql);
+        $res = $this->mysql->query($sql);
 
         if ($mode == MYSQL_QUERY_FETCH) {
             $data = array();
@@ -301,7 +312,7 @@ class BaseModel
     public final function insert($array = array())
     {
 
-        $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
+        $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
         if (empty($array) && $this->__setter) {
             $array = $this->__setter;
@@ -313,79 +324,93 @@ class BaseModel
 
         $this->__setter = array();
 
-        return $this->db->insert($table, $array);
+        return $this->mysql->insert($table, $array);
 
     }
 
     /**
-     * 更新数据
-     *
      * @param $where
      * @param $array
      * @return int
+     * @throws \Exception\HTTPException
      */
     public final function update($where, $array)
     {
 
-        $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
+        $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
-        return $this->db->update($table, $array, $where);
+        return $this->mysql->update($table, $array, $where);
 
     }
 
     /**
-     * 删除数据
-     *
-     * @param $where
+     * @param string $where
+     * @return int
+     * @throws \Exception\HTTPException
      */
-    public final function delete($where)
+    public final function delete($where = 'where 1 = 1')
     {
 
-        $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
+        $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
-        return $this->db->delete($table, $where);
+        return $this->mysql->delete($table, $where);
 
     }
 
     /**
-     * 根据条件查询一个字段
-     *
      * @param $where
      * @param $field
+     * @param $expires
      * @return mixed
+     * @throws \Exception\HTTPException
      */
-    public final function field($where, $field)
+    public final function field($where, $field, $expires = 0)
     {
 
-        $node = $this->node($where);
+        $node = $this->node($where, $field, $expires);
 
         return $node[$field];
 
     }
 
     /**
-     * 根据条件查询一条数据
-     *
+     * @param $where
+     * @return mixed
+     * @throws \Exception\HTTPException
+     */
+    public final function count($where)
+    {
+        $node = $this->node($where, "count(*) as total");
+
+        return $node['total'];
+    }
+
+    /**
      * @param $where
      * @param string $field
      * @param int $expires
      * @return array|mixed
+     * @throws \Exception\HTTPException
      */
     public final function node($where, $field = '*', $expires = 0)
     {
 
-        $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
+        $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
         $cache_key = md5(md5($table) . md5($where) . md5($field));
 
-        if (isset($GLOBALS['REDIS']['cache']) && $expires > 0 && $this->cache->exists($cache_key)) {
-            $node = json_decode($this->cache->get($cache_key), true);
+        if (isset($GLOBALS['REDIS']['cache']) && $expires > 0 && $this->redis->exists($cache_key)) {
+            $node = json_decode($this->redis->get($cache_key), true);
         } else {
-            $node = $this->db->node($table, $where, $field);
-            $this->cache->set($cache_key, json_encode($node, JSON_UNESCAPED_UNICODE), $expires);
+            $node = $this->mysql->node($table, $where, $field);
         }
 
         if (!empty($node)) {
+
+            if ($expires > 0) {
+                $this->redis->set($cache_key, json_encode($node, JSON_UNESCAPED_UNICODE), $expires);
+            }
+
             foreach ($this->entity as $key => $val) {
                 if (isset($node[$key])) {
                     $this->entity->$key = $node[$key];
@@ -393,6 +418,7 @@ class BaseModel
                     $this->entity->PRIMARY_VAL = $node[$this->entity->PRIMARY_KEY];
                 }
             }
+
             $this->exists = true;
         } else {
             $this->exists = false;
@@ -403,8 +429,6 @@ class BaseModel
     }
 
     /**
-     * 查询发布的内容
-     *
      * @param $where
      * @param $field
      * @param $limit
@@ -412,11 +436,12 @@ class BaseModel
      * @param bool $offset
      * @param string $order
      * @return array
+     * @throws \Exception\HTTPException
      */
     public final function publish($where, $field, $limit, $page, $offset = false, $order = '')
     {
 
-        $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
+        $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
         $where = trim($where);
 
@@ -450,7 +475,7 @@ class BaseModel
             $sql = "select count(*) as `rcount` from `{$table}` {$where};";
         }
 
-        $res = $this->db->query($sql);
+        $res = $this->mysql->query($sql);
         $row = $res->fetch_assoc();
         $rcount = $row['rcount'];
         $res->free_result();
@@ -481,7 +506,7 @@ class BaseModel
 
         $sql = "select {$field} from `{$table}` {$where} limit {$_limit};";
 
-        $res = $this->db->query($sql);
+        $res = $this->mysql->query($sql);
 
         $data = array();
 
@@ -508,21 +533,20 @@ class BaseModel
     }
 
     /**
-     * 查询
-     *
      * @param string $where
      * @param string $field
      * @param bool $limit
      * @param bool $page
      * @param int $offset
      * @return array
+     * @throws \Exception\HTTPException
      */
     public final function select($where = 'where 1 = 1', $field = '*', $limit = false, $page = false, $offset = 0)
     {
 
-        $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
+        $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
-        $data = $this->db->select($table, $where, $field, $limit, $page, $offset);
+        $data = $this->mysql->select($table, $where, $field, $limit, $page, $offset);
 
         if ($page) {
             $this->__result = $data['data'];
@@ -542,37 +566,33 @@ class BaseModel
      * @param bool $where
      * @param string $field
      * @param bool $limit
+     * @param bool $page
+     * @param int $offset
      * @return array
+     * @throws \Exception\HTTPException
      */
-    public final function right($tab, $on, $where = false, $field = '*', $limit = false)
+    public final function right($tab, $on, $where = false, $field = '*', $limit = false, $page = false, $offset = 0)
     {
 
-        $tableA = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
-        $tableB = strtolower(DB_DATA_PREFIX . $tab);
+        $tableA = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
-        if ($limit) {
-            $limit = "limit {$limit}";
-        }
-        if ($where) {
-            $where = "where {$where}";
+        $entry = Util::loadCls('Entity\\' . ucfirst($tab), 0);
+
+        if ($entry->DB_CONFIG != $this->entity->DB_CONFIG) {
+            throw Util::HTTPException('right database not same.');
         }
 
-        $sql = "select {$field} from `{$tableA}` a right join `{$tableB}` b on {$on} {$where} {$limit};";
+        $tableB = strtolower($entry->TABLE_PREFIX . trim($tab));
 
-        $res = $this->db->query($sql);
+        $data = $this->mysql->unite($tableA, $tableB, 'right', $on, $where, $field, $limit, $page, $offset);
 
-        $data = array();
-
-        $len = $res->num_rows;
-
-        for ($i = 0; $i < $len; $i++) {
-            $data[] = $res->fetch_assoc();
+        if ($page) {
+            $this->__result = $data['data'];
+            $this->__result_clone = $data['data'];
+        } else {
+            $this->__result = $data;
+            $this->__result_clone = $data;
         }
-
-        $res->free_result();
-
-        $this->__result = $data;
-        $this->__result_clone = $data;
 
         return $data;
 
@@ -584,80 +604,73 @@ class BaseModel
      * @param bool $where
      * @param string $field
      * @param bool $limit
+     * @param bool $page
+     * @param int $offset
      * @return array
+     * @throws \Exception\HTTPException
      */
-    public final function left($tab, $on, $where = false, $field = '*', $limit = false)
+    public final function left($tab, $on, $where = false, $field = '*', $limit = false, $page = false, $offset = 0)
     {
 
-        $tableA = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
-        $tableB = strtolower(DB_DATA_PREFIX . $tab);
+        $tableA = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
-        if ($limit) {
-            $limit = "limit {$limit}";
+        $entry = Util::loadCls('Entity\\' . ucfirst($tab), 0);
+
+        if ($entry->DB_CONFIG != $this->entity->DB_CONFIG) {
+            throw Util::HTTPException('left database not same.');
         }
 
-        if ($where) {
-            $where = "where {$where}";
+        $tableB = strtolower($entry->TABLE_PREFIX . trim($tab));
+
+        $data = $this->mysql->unite($tableA, $tableB, 'left', $on, $where, $field, $limit, $page, $offset);
+
+        if ($page) {
+            $this->__result = $data['data'];
+            $this->__result_clone = $data['data'];
+        } else {
+            $this->__result = $data;
+            $this->__result_clone = $data;
         }
-
-        $sql = "select {$field} from `{$tableA}` a left join `{$tableB}` b on {$on} {$where} {$limit};";
-
-        $res = $this->db->query($sql);
-
-        $data = array();
-
-        $len = $res->num_rows;
-
-        for ($i = 0; $i < $len; $i++) {
-            $data[] = $res->fetch_assoc();
-        }
-
-        $res->free_result();
-
-        $this->__result = $data;
-        $this->__result_clone = $data;
 
         return $data;
 
     }
 
     /**
-     * 查询当前表内的字段
-     *
      * @param string $field
      * @return array
+     * @throws \Exception\HTTPException
      */
     public final function show_fields($field = '*')
     {
 
-        $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
-        return $this->db->show_fields($table, $field);
+        $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
+        return $this->mysql->show_fields($table, $field);
 
     }
 
     /**
-     * 查询所有的表
-     *
      * @param string $field
      * @return array
+     * @throws \Exception\HTTPException
      */
     public final function show_tables($field = '*')
     {
 
-        return $this->db->show_tables($field);
+        return $this->mysql->show_tables($field);
 
     }
 
     /**
-     * 查询当前表的索引
      * @return mixed
+     * @throws \Exception\HTTPException
      */
     public final function show_primary_key()
     {
 
-        $table = strtolower(DB_DATA_PREFIX . $this->ENTITY_NAME);
+        $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
-        return $this->db->show_primary_key($table);
+        return $this->mysql->show_primary_key($table);
 
     }
 
