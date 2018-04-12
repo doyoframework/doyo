@@ -1,4 +1,5 @@
 <?php
+
 use Core\Context;
 
 /**
@@ -13,32 +14,34 @@ if (!function_exists('xmlrpc_encode_request')) {
  *
  * @param $class
  */
-function sys_autoload($class) {
+function sys_autoload($class)
+{
 
     $basePath = str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
     $classFile = APP_PATH . DIRECTORY_SEPARATOR . $basePath;
-    
+
     if (!file_exists($classFile)) {
         $classFile = __DIR__ . DIRECTORY_SEPARATOR . $basePath;
     }
-    
+
     if (!file_exists($classFile)) {
         $classFile = __DIR__ . DIRECTORY_SEPARATOR . 'Engine/Smarty/libs/plugins/' . $basePath;
     }
-    
+
     if (!file_exists($classFile)) {
         $classFile = __DIR__ . DIRECTORY_SEPARATOR . 'Engine/Smarty/libs/sysplugins/' . $basePath;
     }
-    
+
     if (!file_exists($classFile)) {
         $classFile = __DIR__ . DIRECTORY_SEPARATOR . 'Sdk/' . $basePath;
     }
-    
+
     if (file_exists($classFile)) {
-        require_once ($classFile);
+        require_once($classFile);
     }
 
 }
+
 spl_autoload_register('sys_autoload');
 
 /**
@@ -49,10 +52,10 @@ define('CORE_PATH', __DIR__);
 /**
  * 设置异常输出的处理方法
  */
-set_exception_handler(function ($exception) {
+set_exception_handler(function (\Exception\HTTPException $exception) {
     $exceptionHash = Context::formatException($exception);
-    
-    Context::HttpDispatcher()->display($exceptionHash, 0);
+
+    Context::HttpDispatcher()->display($exceptionHash, $exception->code());
 });
 
 /**

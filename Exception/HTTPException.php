@@ -12,12 +12,20 @@ class HTTPException extends \Exception
      */
     private $data = null;
 
-    public function __construct($message, $data = null)
-    {
+    /**
+     * 错误码
+     *
+     * @var int
+     */
+    private $code = -1;
 
+    public function __construct($message, $code = -1, $data = null)
+    {
         if ($data != null) {
             $this->data = $data;
         }
+
+        $this->code = $code;
 
         parent::__construct($message);
 
@@ -30,9 +38,16 @@ class HTTPException extends \Exception
      */
     public function getData()
     {
-
         return $this->data;
-
     }
 
+    /**
+     * 返回错误码
+     *
+     * @return int
+     */
+    public function code()
+    {
+        return $this->code;
+    }
 }

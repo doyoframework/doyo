@@ -182,13 +182,15 @@ class BaseCtrl
             throw Util::HTTPException($key . ' empty');
         }
 
-        if (!is_numeric($this->param[$key])) {
-            if (strtolower($this->param[$key]) == 'true') {
-                return true;
-            }
-        } else {
-            if ($this->param[$key] > 0) {
-                return true;
+        if (isset($this->param[$key])) {
+            if (!is_numeric($this->param[$key])) {
+                if (strtolower($this->param[$key]) == 'true') {
+                    return true;
+                }
+            } else {
+                if ($this->param[$key] > 0) {
+                    return true;
+                }
             }
         }
 
@@ -347,7 +349,7 @@ class BaseCtrl
     }
 
     /**
-     * 设置$_SESSION内的值
+     * 设置_SESSION内的值
      *
      * @param $key
      * @param $val
@@ -355,12 +357,12 @@ class BaseCtrl
     protected final function setSession($key, $val)
     {
 
-        $_SESSION[$key] = $val;
+        Session::set($key, $val);
 
     }
 
     /**
-     * 查询$_SESSION内的值
+     * 查询_SESSION内的值
      *
      * @param $key
      * @param bool $notEmpty
@@ -370,8 +372,8 @@ class BaseCtrl
     protected final function getSession($key, $notEmpty = false)
     {
 
-        if (isset($_SESSION[$key])) {
-            return $_SESSION[$key];
+        if (Session::exists($key)) {
+            return Session::get($key);
         }
 
         if ($notEmpty) {
@@ -383,24 +385,24 @@ class BaseCtrl
     }
 
     /**
-     * 删除$_SESSION内的值
+     * 删除_SESSION内的值
      *
      * @param $key
      */
     protected final function delSession($key)
     {
 
-        unset($_SESSION[$key]);
+        Session::del($key);
 
     }
 
     /**
-     * 清空$_SESSION内的值
+     * 清空_SESSION内的值
      */
-    protected final function clearSession()
+    protected final function destroySession()
     {
 
-        session_destroy();
+        Session::destroy();
 
     }
 
