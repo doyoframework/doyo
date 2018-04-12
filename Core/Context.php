@@ -89,7 +89,7 @@ class Context
     /**
      * HTTPDispatcher
      *
-     * @return \Dispatcher\HTTPDispatcher
+     * @return \Dispatcher\HTTPDispatcher|object
      *
      *
      */
@@ -103,7 +103,7 @@ class Context
     /**
      * ShellDispatcher
      *
-     * @return \Dispatcher\ShellDispatcher
+     * @return \Dispatcher\ShellDispatcher|object
      */
     public static function ShellDispatcher()
     {
@@ -113,7 +113,7 @@ class Context
     /**
      * SocketDispatcher
      *
-     * @return \Dispatcher\SocketDispatcher
+     * @return \Dispatcher\SocketDispatcher|object
      *
      *
      */
