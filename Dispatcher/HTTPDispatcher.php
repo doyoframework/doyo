@@ -181,7 +181,7 @@ class HTTPDispatcher
             }
 
         } else {
-            if ($code == 0) {
+            if ($code != 0) {
                 echo '<pre>';
                 print_r($data);
                 echo '</pre>';

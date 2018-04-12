@@ -592,34 +592,7 @@ class BaseCtrl
 
         }
 
-        if (getenv('HTTP_CLIENT_IP')) {
-            $ipaddr = getenv('HTTP_CLIENT_IP');
-        } else if (getenv('HTTP_X_FORWARDED_FOR')) {
-            $ipaddr = getenv('HTTP_X_FORWARDED_FOR');
-        } else if (getenv('REMOTE_ADDR')) {
-            $ipaddr = getenv('REMOTE_ADDR');
-        } else if (isset($_SERVER['REMOTE_ADDR'])) {
-            $ipaddr = $_SERVER['REMOTE_ADDR'];
-        } else {
-            if ($long) {
-                return 0;
-            } else {
-                return '0.0.0.0';
-            }
-        }
-
-        if (strchr($ipaddr, ',')) {
-            $ipaddr = explode(',', $ipaddr);
-            $ipaddr = array_pop($ipaddr);
-        }
-
-        $ipaddr = ltrim($ipaddr);
-
-        if ($long) {
-            return ip2long($ipaddr);
-        }
-
-        return $ipaddr;
+        return Util::ipaddr($long);
     }
 
     /**
