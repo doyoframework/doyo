@@ -139,7 +139,7 @@ class Context
             );
 
             if ($exception instanceof HTTPException) {
-                $data = $exception->getData();
+                $data = $exception->errData();
                 if ($data) {
                     $exceptionHash['data'] = $data;
                 }
@@ -151,7 +151,7 @@ class Context
             );
 
             if ($exception instanceof HTTPException) {
-                $data = $exception->getData();
+                $data = $exception->errData();
                 if ($data) {
                     $exceptionHash['data'] = $data;
                 }

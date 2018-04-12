@@ -55,7 +55,7 @@ define('CORE_PATH', __DIR__);
 set_exception_handler(function (\Exception\HTTPException $exception) {
     $exceptionHash = Context::formatException($exception);
 
-    Context::HttpDispatcher()->display($exceptionHash, $exception->code());
+    Context::HttpDispatcher()->display($exceptionHash, $exception->errCode());
 });
 
 /**

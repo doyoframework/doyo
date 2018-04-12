@@ -116,13 +116,14 @@ class Util
      * 抛出异常
      *
      * @param $errMsg
+     * @param int $errCode
      * @param null $errData
      * @return HTTPException
      */
-    public static function HTTPException($errMsg, $errData = null)
+    public static function HTTPException($errMsg, $errCode = -1, $errData = null)
     {
 
-        return new HTTPException($errMsg, $errData);
+        return new HTTPException($errMsg, $errCode, $errData);
 
     }
 

@@ -10,22 +10,22 @@ class HTTPException extends \Exception
      *
      * @var array
      */
-    private $data = null;
+    private $errData = null;
 
     /**
      * 错误码
      *
      * @var int
      */
-    private $code = -1;
+    private $errCode = -1;
 
-    public function __construct($message, $code = -1, $data = null)
+    public function __construct($message, $errCode = -1, $errData = null)
     {
-        if ($data != null) {
-            $this->data = $data;
+        if ($errData != null) {
+            $this->errData = $errData;
         }
 
-        $this->code = $code;
+        $this->errCode = $errCode;
 
         parent::__construct($message);
 
@@ -36,9 +36,9 @@ class HTTPException extends \Exception
      *
      * @return array
      */
-    public function getData()
+    public function errData()
     {
-        return $this->data;
+        return $this->errData;
     }
 
     /**
@@ -46,8 +46,9 @@ class HTTPException extends \Exception
      *
      * @return int
      */
-    public function code()
+    public function errCode()
     {
-        return $this->code;
+        return $this->errCode;
     }
 }
+
