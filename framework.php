@@ -52,10 +52,16 @@ define('CORE_PATH', __DIR__);
 /**
  * 设置异常输出的处理方法
  */
-set_exception_handler(function (\Exception\HTTPException $exception) {
+set_exception_handler(function ($exception) {
     $exceptionHash = Context::formatException($exception);
 
-    Context::HttpDispatcher()->display($exceptionHash, $exception->errCode());
+    $errCode = -1;
+
+    if ($exception instanceof \Exception\HTTPException) {
+        $errCode = $exception->errCode();
+    }
+
+    Context::HttpDispatcher()->display($exceptionHash, $errCode);
 });
 
 /**
