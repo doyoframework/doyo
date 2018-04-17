@@ -615,10 +615,9 @@ class BaseCtrl
      * @param $op
      * @param $data
      * @param int $fd
-     * @param int $code
      * @return mixed
      */
-    public final function send($op, $data = array(), $fd = -1, $code = 1)
+    public final function send($op, $data = array(), $fd = -1)
     {
 
         if ($fd === -1) {
@@ -637,7 +636,7 @@ class BaseCtrl
         }
 
         $array = array(
-            'code' => $code,
+            'code' => 0,
             'op' => $op,
             'version' => VERSION,
             'unixtime' => Util::millisecond(),
@@ -655,13 +654,14 @@ class BaseCtrl
      *
      * @param $data
      * @param int $fd
+     * @param int $code
      */
-    public final function error($data, $fd = -1)
+    public final function error($data, $fd = -1, $code = -1)
     {
 
         $this->send(-1, array(
             'message' => $data
-        ), $fd, 0);
+        ), $fd, $code);
 
     }
 

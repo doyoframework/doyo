@@ -34,6 +34,8 @@ class Context
         date_default_timezone_set(TIMEZONE);
 
         header('Content-Type: text/html; charset=' . CHARSET);
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Method:POST,GET');
 
         if (defined('SESSION_MODE') && SESSION_MODE == 'redis') {
 
