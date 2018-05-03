@@ -440,6 +440,22 @@ class Util
     }
 
     /**
+     * 检查passport格式是否合法
+     *
+     * @param $passport
+     * @return bool
+     */
+    public static function check_passport($passport)
+    {
+
+        if (!preg_match("/^[a-zA-Z0-9_＼x7f-＼xff][a-zA-Z0-9_＼x7f-＼xff]+$/", $passport)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * 异步发送邮件
      *
      * @param $to

@@ -218,6 +218,20 @@ class BaseCtrl
 
     }
 
+
+    protected final function hasArray($key)
+    {
+        if (is_numeric($key)) {
+            $key--;
+        }
+
+        if (isset($this->param[$key]) && is_array($this->param[$key])) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * 查询传递的String参数
      *
@@ -635,8 +649,15 @@ class BaseCtrl
             return false;
         }
 
+        $code = 0;
+
+        if ($op < 0) {
+            $code = $op;
+            throw Util::HTTPException('位置错误');
+        }
+
         $array = array(
-            'code' => 0,
+            'code' => $code,
             'op' => $op,
             'version' => VERSION,
             'unixtime' => Util::millisecond(),

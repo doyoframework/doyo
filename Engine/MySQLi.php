@@ -107,7 +107,8 @@ class MySQLi
         }
 
         if ($this->mysql->errno) {
-            throw Util::HTTPException($this->mysql->error, $this->_sql);
+            throw Util::HTTPException("网络错误，请联系管理员。", -1, [$this->mysql->error, $this->_sql]);
+            //throw Util::HTTPException($this->mysql->error, $this->_sql);
         }
 
         return $res;
