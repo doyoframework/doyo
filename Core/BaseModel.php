@@ -651,7 +651,7 @@ class BaseModel
      * @return array
      * @throws \Exception\HTTPException
      */
-    public final function innerjoin($tab, $on, $where = false, $field = '*', $limit = false, $page = false, $offset = 0)
+    public final function inner($tab, $on, $where = false, $field = '*', $limit = false, $page = false, $offset = 0)
     {
 
         $tableA = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
@@ -659,12 +659,12 @@ class BaseModel
         $entry = Util::loadCls('Entity\\' . ucfirst($tab), 0);
 
         if ($entry->DB_CONFIG != $this->entity->DB_CONFIG) {
-            throw Util::HTTPException('inner join database not same.');
+            throw Util::HTTPException('inner database not same.');
         }
 
         $tableB = strtolower($entry->TABLE_PREFIX . trim($tab));
 
-        $data = $this->mysql->unite($tableA, $tableB, 'inner join', $on, $where, $field, $limit, $page, $offset);
+        $data = $this->mysql->unite($tableA, $tableB, 'inner', $on, $where, $field, $limit, $page, $offset);
 
         if ($page) {
             $this->__result = $data['data'];
