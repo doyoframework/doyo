@@ -369,8 +369,11 @@ class BaseModel
 
         $node = $this->node($where, $field, $expires);
 
-        return $node[$field];
+        if($node) {
+            return array_pop($node);
+        }
 
+        return false;
     }
 
     /**

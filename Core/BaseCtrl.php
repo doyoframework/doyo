@@ -675,12 +675,15 @@ class BaseCtrl
      * 绑定UID
      *
      * @param $pid
+     * @throws \Exception\HTTPException
      */
     public final function connection_bind($pid)
     {
 
         if ($this->svr->exist($this->fd)) {
             $this->svr->bind($this->fd, $pid);
+        } else {
+            throw Util::HTTPException('fd not connect');
         }
     }
 

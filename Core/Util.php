@@ -4,6 +4,7 @@ namespace Core;
 
 use Engine\RedisEngine;
 use Exception\HTTPException;
+use Sdk\QRCode;
 
 class Util
 {
@@ -357,7 +358,7 @@ class Util
      * @param array $header
      * @return bool|mixed
      */
-    public static function curl_request($url, $type, $params = false, $header = array())
+    public static function curl_request($url, $type = 'GET', $params = false, $header = array())
     {
 
         $ch = curl_init();
@@ -376,15 +377,16 @@ class Util
             curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         }
 
-        // curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)'); // 伪造浏览器头
-        // curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-
         curl_setopt($ch, CURLOPT_HEADER, 0);
 
         if (strtoupper($type) == 'POST') {
             curl_setopt($ch, CURLOPT_POST, 1);
             if ($params) {
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+                if (is_array($params)) {
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+                } else {
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+                }
             }
         }
 
@@ -578,4 +580,33 @@ class Util
         return $ipaddr;
 
     }
+
+    /**
+     * @param $xml
+     * @return array
+     */
+    public static function parseXML($xml)
+    {
+
+        return array();
+    }
+
+    /**
+     * @param $ary
+     * @return string
+     */
+    public static function toXml($ary)
+    {
+
+        return "";
+    }
+
+    /**
+     * @return QRCode|object
+     */
+    public static function qrcode()
+    {
+        return Util::loadCls('Sdk\QRCode');
+    }
+
 }

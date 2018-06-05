@@ -97,7 +97,7 @@ class HTTPDispatcher
 
         if ($this->ctrlPath != 'Ctrl') {
             if (!file_exists(APP_PATH . '/' . $this->ctrlPath . '/' . $ctrlName . '.php')) {
-                if (file_exists(APP_PATH . '/' . $this->ctrlPath . '/plugins/' . strtolower($pargs[1]) . '/' . ucfirst(strtolower($pargs[1])) . '.php')) {
+                if (isset($pargs[1]) && file_exists(APP_PATH . '/' . $this->ctrlPath . '/plugins/' . strtolower($pargs[1]) . '/' . ucfirst(strtolower($pargs[1])) . '.php')) {
 
                     $this->template = $this->ctrlPath . '/plugins/' . strtolower($pargs[1]) . '/templates';
 
