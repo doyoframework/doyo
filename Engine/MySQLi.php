@@ -27,6 +27,8 @@ class MySQLi
 
     private $_sql;
 
+    private $_config;
+
     /**
      *
      * @var \mysqli
@@ -42,6 +44,8 @@ class MySQLi
      */
     public function connect($db_config)
     {
+        $this->_config = $db_config;
+
         $conf = $GLOBALS['DATABASE'][$db_config];
 
         $this->_host = $conf['host'];
@@ -82,7 +86,7 @@ class MySQLi
 
         if (!@$this->mysql->ping()) {
             $this->mysql->close();
-            return $this->connect($this->_host, $this->_user, $this->_password, $this->_database, $this->_port, $this->_charset, $this->_pconnect);
+            return $this->connect($this->_config);
         }
 
         return true;
@@ -108,7 +112,6 @@ class MySQLi
 
         if ($this->mysql->errno) {
             throw Util::HTTPException("网络错误，请联系管理员。", -1, [$this->mysql->error, $this->_sql]);
-            //throw Util::HTTPException($this->mysql->error, $this->_sql);
         }
 
         return $res;
@@ -132,7 +135,6 @@ class MySQLi
      */
     public function select($table, $where, $field = '*', $limit = false, $page = false, $offset = 0)
     {
-
 
         if (empty($page)) {
             $data = array();
@@ -330,8 +332,6 @@ class MySQLi
 
         $sql = "insert into `{$table}` ({$filedKey}) values ({$filedVal});";
 
-        //echo $sql;
-
         file_put_contents(SQL_LOG_PATH, $sql . "\n", FILE_APPEND);
 
         $stmt = $this->mysql->prepare($sql);
@@ -414,9 +414,9 @@ class MySQLi
 
             $stmt = $this->mysql->prepare($sql);
 
-            $stype = str_repeat('s', count($val));
+            $type = str_repeat('s', count($val));
 
-            array_unshift($val, $stype);
+            array_unshift($val, $type);
 
             $refs = array();
             foreach ($val as $o => $value) {
@@ -463,18 +463,6 @@ class MySQLi
         $res->free_result();
 
         return $data;
-
-    }
-
-    /**
-     * 创建临时表查询
-     * @param $tables
-     * @param $on
-     * @param $where
-     * @param string $field
-     */
-    public function temporary($tables, $on, $where, $field = '*')
-    {
 
     }
 

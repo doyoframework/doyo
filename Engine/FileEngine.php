@@ -41,8 +41,7 @@ class FileEngine
     public function check_file_type($name)
     {
 
-        $type = explode('.', $name);
-        $type = strtolower($type[1]);
+        $type = strtolower(substr($name, strrpos($name, '.') + 1));
 
         switch ($type) {
 
@@ -61,6 +60,9 @@ class FileEngine
 
             case 'txt' :
                 $stype = 'txt';
+                break;
+            case 'xml' :
+                $stype = 'xml';
                 break;
 
             case 'doc' :
@@ -89,6 +91,11 @@ class FileEngine
                 break;
             case 'mp4' :
                 $stype = 'mp4';
+                break;
+
+            case '3gp' :
+                $stype = '3gp';
+
                 break;
 
             case 'application/x-shockwave-flash' :
@@ -148,7 +155,7 @@ class FileEngine
         }
 
         // 设置目录和名称
-        $path = $this->set_file_path($index, $sort, $part, $type['type']);
+        $path = $this->set_file_path($index, $sort, $part, $type['type'], $file['name']);
 
         // 缩略图路径
         $npath = $path['path'] . $path['name'];
@@ -403,10 +410,11 @@ class FileEngine
      * @param $sort
      * @param $part
      * @param $_type
+     * @param $_filename
      * @return array
      * @throws \Exception\HTTPException
      */
-    public function set_file_path($index, $sort, $part, $_type)
+    public function set_file_path($index, $sort, $part, $_type, $_filename = false)
     {
 
         if ($sort[0] != '/') {
@@ -415,6 +423,12 @@ class FileEngine
 
         if ($sort[strlen($sort) - 1] != '/') {
             $sort .= '/';
+        }
+
+        $filename = $_filename;
+
+        if (!$_filename) {
+            $filename = uniqid();
         }
 
         $type = strtolower($_type);
@@ -464,6 +478,7 @@ class FileEngine
         return array(
             'sort' => $sort,
             'type' => $type,
+            'filename' => $filename,
             'name' => ($_tmp_ . '.' . $type),
             'tname' => ($_tmp_ . '_tmp.' . $type),
             'sname' => ($_tmp_ . '_small.' . $type),

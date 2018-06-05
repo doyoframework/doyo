@@ -7,6 +7,8 @@ use Core\Util;
 class SocketDispatcher
 {
 
+    private static $svr;
+
     /**
      * 分发器
      *
@@ -19,11 +21,7 @@ class SocketDispatcher
     public function dispatch(&$svr, $fd, $op, $param = array())
     {
 
-        echo "dispatch fd {$fd} ";
-
         if (isset($GLOBALS['ROUTE'][$op])) {
-
-            echo "op {$op}\n";
 
             $route = explode('.', $GLOBALS['ROUTE'][$op]);
 
@@ -35,6 +33,8 @@ class SocketDispatcher
 
             $ctrl->fd = $fd;
 
+            self::$svr = $svr;
+
             $ctrl->svr = $svr;
 
             $method = $route[1];
@@ -44,10 +44,28 @@ class SocketDispatcher
             if (is_array($ret)) {
                 $ctrl->send($op, $ret);
             }
-        } else {
-            echo "\n";
         }
-
     }
 
+    public static function send($op, $data, $fd)
+    {
+
+        $code = 0;
+
+        if ($op < 0) {
+            $code = $op;
+        }
+
+        $array = array(
+            'code' => $code,
+            'op' => $op,
+            'version' => VERSION,
+            'unixtime' => Util::millisecond(),
+            'data' => $data
+        );
+
+        $data = json_encode($array, JSON_UNESCAPED_UNICODE);
+
+        return self::$svr->push($fd, $data);
+    }
 }

@@ -636,6 +636,45 @@ class BaseModel
 
     }
 
+
+    /**
+     * @param $tab
+     * @param $on
+     * @param bool $where
+     * @param string $field
+     * @param bool $limit
+     * @param bool $page
+     * @param int $offset
+     * @return array
+     * @throws \Exception\HTTPException
+     */
+    public final function innerjoin($tab, $on, $where = false, $field = '*', $limit = false, $page = false, $offset = 0)
+    {
+
+        $tableA = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
+
+        $entry = Util::loadCls('Entity\\' . ucfirst($tab), 0);
+
+        if ($entry->DB_CONFIG != $this->entity->DB_CONFIG) {
+            throw Util::HTTPException('inner join database not same.');
+        }
+
+        $tableB = strtolower($entry->TABLE_PREFIX . trim($tab));
+
+        $data = $this->mysql->unite($tableA, $tableB, 'inner join', $on, $where, $field, $limit, $page, $offset);
+
+        if ($page) {
+            $this->__result = $data['data'];
+            $this->__result_clone = $data['data'];
+        } else {
+            $this->__result = $data;
+            $this->__result_clone = $data;
+        }
+
+        return $data;
+
+    }
+
     /**
      * @param string $field
      * @return array

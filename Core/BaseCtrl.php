@@ -2,6 +2,8 @@
 
 namespace Core;
 
+use Dispatcher\SocketDispatcher;
+
 class BaseCtrl
 {
 
@@ -585,6 +587,8 @@ class BaseCtrl
      * @param bool $long
      * @return array|false|int|string
      */
+
+
     public final function ipaddr($long = true)
     {
         if ($this->fd > 0 && $this->svr != null) {
@@ -627,9 +631,9 @@ class BaseCtrl
      * 长连接发送数据
      *
      * @param $op
-     * @param $data
+     * @param array $data
      * @param int $fd
-     * @return mixed
+     * @return bool
      */
     public final function send($op, $data = array(), $fd = -1)
     {
@@ -639,34 +643,16 @@ class BaseCtrl
         }
 
         if (!is_numeric($fd)) {
-            echo " fd error. \n";
-            print_r($fd);
+            echo " fd not numeric. \n";
             return false;
         }
 
         if (!$this->svr->exist($fd)) {
-            echo " fd not connect.: {$fd} \n";
+            echo " fd not connect: {$fd} \n";
             return false;
         }
 
-        $code = 0;
-
-        if ($op < 0) {
-            $code = $op;
-            throw Util::HTTPException('位置错误');
-        }
-
-        $array = array(
-            'code' => $code,
-            'op' => $op,
-            'version' => VERSION,
-            'unixtime' => Util::millisecond(),
-            'data' => $data
-        );
-
-        $data = json_encode($array, JSON_UNESCAPED_UNICODE);
-
-        return $this->svr->push($fd, $data);
+        return SocketDispatcher::send($op, $data, $fd);
 
     }
 
@@ -675,15 +661,13 @@ class BaseCtrl
      *
      * @param $data
      * @param int $fd
-     * @param int $code
+     * @param int $op
      */
-    public final function error($data, $fd = -1, $code = -1)
+    public final function error($data, $fd = -1, $op = -1)
     {
-
-        $this->send(-1, array(
+        $this->send($op, array(
             'message' => $data
-        ), $fd, $code);
-
+        ), $fd);
     }
 
 
@@ -691,16 +675,24 @@ class BaseCtrl
      * 绑定UID
      *
      * @param $pid
-     * @throws \Exception\HTTPException
      */
     public final function connection_bind($pid)
     {
 
         if ($this->svr->exist($this->fd)) {
             $this->svr->bind($this->fd, $pid);
-        } else {
-            throw Util::HTTPException('fd not connect');
         }
+    }
+
+    /**
+     * 是否在线
+     *
+     * @param $fd
+     * @return mixed
+     */
+    public final function is_online($fd)
+    {
+        return $this->svr->exist($fd);
     }
 
     /**
@@ -711,6 +703,8 @@ class BaseCtrl
      */
     public final function connection_info($fd = -1)
     {
+        $fd = intval($fd);
+
         if ($fd === -1) {
             $fd = $this->fd;
         }
@@ -729,6 +723,7 @@ class BaseCtrl
      */
     public final function close($fd = -1)
     {
+        $fd = intval($fd);
 
         if ($fd === -1) {
             $fd = $this->fd;

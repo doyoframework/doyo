@@ -137,6 +137,8 @@ class HTTPDispatcher
 
         $ctrl->isPost = false;
 
+        $this->params = array_merge($this->params, $_GET);
+
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             $ctrl->isPost = true;

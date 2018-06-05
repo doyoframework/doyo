@@ -70,6 +70,10 @@ class Util
             self::$redis[$tags]->connect($config['host'], $config['port'], $config['timeout'], $config['database'], $config['pconnect'], $config['password']);
         }
 
+        if(self::$redis[$tags]->ping()) {
+            self::$redis[$tags]->reconnect();
+        }
+
         return self::$redis[$tags];
 
     }
