@@ -306,7 +306,7 @@ class BaseModel
      * 增加一条数据
      *
      * @param array $array
-     * @return array
+     * @return array|int
      * @throws \Exception\HTTPException
      */
     public final function insert($array = array())
