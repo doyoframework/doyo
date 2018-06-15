@@ -160,6 +160,10 @@ class BaseCtrl
             throw Util::HTTPException($key . ' empty');
         }
 
+        if ($val === false) {
+            $val = 0;
+        }
+
         if ($abs) {
             $val = abs($val);
         }
@@ -281,7 +285,7 @@ class BaseCtrl
             throw Util::HTTPException($key . ' empty');
         }
 
-        if ($val != '') {
+        if ($val !== false) {
 
             $_val = $val;
 

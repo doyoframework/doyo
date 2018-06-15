@@ -50,6 +50,12 @@ class BaseModel
     public $exists = false;
 
     /**
+     * 缓存时间
+     * @var int
+     */
+    protected $cache = 0;
+
+    /**
      * 临时赋值的变量集合
      *
      * @var array
@@ -72,6 +78,14 @@ class BaseModel
 
 
     /**
+     * 继承的子类要用到的觉醒函数
+     */
+    public function __awake()
+    {
+
+    }
+
+    /**
      * 继承的子类要用到的构造函数
      */
     public function __initialize()
@@ -89,9 +103,15 @@ class BaseModel
     public final function __construct($entity_name, $primary_val)
     {
 
+        $this->__awake();
+
         $this->ENTITY_NAME = $entity_name;
 
         $this->PRIMARY_VAL = $primary_val;
+
+        if ($this->cache > 0 && !isset($GLOBALS['REDIS']['cache'])) {
+            throw Util::HTTPException('cache need redis cache config.');
+        }
 
         if (isset($GLOBALS['REDIS']['cache'])) {
             $this->redis = Util::loadRedis('cache');
@@ -107,7 +127,7 @@ class BaseModel
             $this->mysql->connect($this->entity->DB_CONFIG);
 
             if ($primary_val) {
-                $this->read($primary_val);
+                $this->read($primary_val, $this->cache);
             }
         }
 
@@ -369,7 +389,7 @@ class BaseModel
 
         $node = $this->node($where, $field, $expires);
 
-        if($node) {
+        if ($node) {
             return array_pop($node);
         }
 
@@ -549,7 +569,19 @@ class BaseModel
 
         $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
-        $data = $this->mysql->select($table, $where, $field, $limit, $page, $offset);
+        $cache_key = md5($table . $where . $field . $limit . $page . $offset);
+
+        if (isset($GLOBALS['REDIS']['cache']) && $this->cache > 0 && $this->redis->exists($cache_key)) {
+
+            $data = json_decode($this->redis->get($cache_key), true);
+
+        } else {
+            $data = $this->mysql->select($table, $where, $field, $limit, $page, $offset);
+
+            if (isset($GLOBALS['REDIS']['cache']) && $this->cache > 0) {
+                $this->redis->set($cache_key, json_encode($data, JSON_UNESCAPED_UNICODE), $this->cache);
+            }
+        }
 
         if ($page) {
             $this->__result = $data['data'];
