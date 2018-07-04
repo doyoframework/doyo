@@ -2,6 +2,7 @@
 
 namespace Core;
 
+use Common\Model;
 use Dispatcher\SocketDispatcher;
 
 class BaseCtrl
@@ -259,8 +260,11 @@ class BaseCtrl
             throw Util::HTTPException($key . ' empty');
         }
 
-        return strval($val);
-
+        if(Util::is_json($val)) {
+            return strval($val);
+        }else{
+            return addslashes(strval($val));
+        }
     }
 
     /**
@@ -362,6 +366,14 @@ class BaseCtrl
             $val = $_val;
 
             $val = array_map('strval', $val);
+
+            foreach ($val as $k => $v) {
+                if (!Util::is_json($v)) {
+                    $val[$k] = addslashes($v);
+                } else {
+                    $val[$k] = $v;
+                }
+            }
         }
 
         return $val;

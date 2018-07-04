@@ -65,6 +65,10 @@ class FileEngine
                 $stype = 'xml';
                 break;
 
+            case 'pdf' :
+                $stype = 'pdf';
+                break;
+
             case 'doc' :
                 $stype = 'doc';
                 break;
@@ -77,6 +81,13 @@ class FileEngine
                 break;
             case 'xlsx' :
                 $stype = 'xlsx';
+                break;
+
+            case 'ppt' :
+                $stype = 'ppt';
+                break;
+            case 'pptx' :
+                $stype = 'pptx';
                 break;
 
             case 'zip' :

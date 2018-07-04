@@ -71,7 +71,7 @@ class Util
             self::$redis[$tags]->connect($config['host'], $config['port'], $config['timeout'], $config['database'], $config['pconnect'], $config['password']);
         }
 
-        if(self::$redis[$tags]->ping()) {
+        if (self::$redis[$tags]->ping()) {
             self::$redis[$tags]->reconnect();
         }
 
@@ -609,4 +609,21 @@ class Util
         return Util::loadCls('Sdk\QRCode');
     }
 
+    /**
+     * @param $string
+     * @return bool
+     */
+    public static function is_json($string)
+    {
+        json_decode($string);
+        return (json_last_error() == JSON_ERROR_NONE);
+    }
+
+    public static function logs($content, $file = false)
+    {
+        if (!$file) {
+            $file = '/tmp/doyo.' . date('Y-m-d') . '.log';
+        }
+        file_put_contents($file, '[' . date('Y-m-d H:i:s') . ']' . $content . "\n", FILE_APPEND);
+    }
 }
