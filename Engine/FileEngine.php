@@ -198,7 +198,7 @@ class FileEngine
         /**
          * 设置文件名称
          */
-        $name = $_tmp_name . 'n' . strtoupper(substr(md5($index . FILE_TAGS . $part), 2, 6));
+        $name = $_tmp_name . 'n' . strtoupper(substr(md5($index . FILE_TAGS . $part), 2, 12));
 
         $src = '/' . FILE_PATH . $spath . $name . '.' . $type . '?t=' . time();
 

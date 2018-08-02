@@ -205,12 +205,12 @@ class BaseModel
     {
 
         //优先查询缓存
-        $exists = $this->load($primary_val);
+        $exists = $this->__load($primary_val);
 
         //缓存不存在，继续查询数据库
         if (!$exists) {
             $node = $this->node("where `{$this->entity->PRIMARY_KEY}` = '{$primary_val}'", '*', $expires);
-            $this->save();
+            $this->__save();
         } else {
             $node = $this->__toData();
         }
@@ -272,7 +272,7 @@ class BaseModel
 
         $status = $this->update("where `{$this->entity->PRIMARY_KEY}` = '{$this->entity->PRIMARY_VAL}'", $this->__setter);
 
-        $this->save();
+        $this->__save();
 
         $this->__setter = array();
 
@@ -311,7 +311,7 @@ class BaseModel
      * @param bool $setter
      * @throws \Exception\HTTPException
      */
-    public final function save($setter = true)
+    public final function __save($setter = true)
     {
         if (!isset($GLOBALS['DATABASE']) || !isset($GLOBALS['DATABASE'][$this->entity->DB_CONFIG])) {
             return;
@@ -344,7 +344,7 @@ class BaseModel
      * @return bool
      * @throws \Exception\HTTPException
      */
-    public final function load($primary_val)
+    public final function __load($primary_val)
     {
         if (!isset($GLOBALS['DATABASE']) || !isset($GLOBALS['DATABASE'][$this->entity->DB_CONFIG])) {
             return false;
@@ -452,7 +452,7 @@ class BaseModel
 
         if ($insert_id > 0) {
             $this->entity->PRIMARY_VAL = $insert_id;
-            $this->save();
+            $this->__save();
         }
 
         $this->__setter = array();
