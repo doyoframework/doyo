@@ -201,7 +201,7 @@ class MySQLi
             $array['data'] = $dataArray;
             $array['limit'] = $limit;
             $array['page'] = $page;
-            $array['rcount'] = $rcount;
+            $array['rcount'] = intval($rcount);
             $array['pcount'] = $pcount;
             $array['next'] = $next;
             $array['prev'] = $prev;

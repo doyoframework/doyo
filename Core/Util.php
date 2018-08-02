@@ -118,6 +118,18 @@ class Util
     }
 
     /**
+     * 加载短信发送类
+     *
+     * @return \Sdk\Alioss
+     */
+    public static function loadOss()
+    {
+
+        return Util::loadCls("Sdk\Alioss");
+
+    }
+
+    /**
      * 抛出异常
      *
      * @param $errMsg
@@ -379,13 +391,18 @@ class Util
 
         curl_setopt($ch, CURLOPT_HEADER, 0);
 
-        if (strtoupper($type) == 'POST') {
+        if (strtoupper($type) == 'FILE') {
             curl_setopt($ch, CURLOPT_POST, 1);
-            if ($params) {
-                if (is_array($params)) {
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
-                } else {
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+        } else {
+            if (strtoupper($type) == 'POST') {
+                curl_setopt($ch, CURLOPT_POST, 1);
+                if ($params) {
+                    if (is_array($params)) {
+                        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+                    } else {
+                        curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+                    }
                 }
             }
         }
@@ -398,31 +415,6 @@ class Util
         }
 
         return $response;
-
-    }
-
-    /**
-     * 发送一个异步执行请求
-     *
-     * @param $ctrl
-     * @param $method
-     * @param $params
-     */
-    public static function async($ctrl, $method, $params)
-    {
-
-        $client = new \swoole_client(SWOOLE_SOCK_TCP);
-
-        $client->connect('127.0.0.1', 9501);
-
-        $client->send(json_encode(array(
-            'method' => 'process',
-            'params' => array(
-                'ctrl' => $ctrl,
-                'method' => $method,
-                'params' => $params
-            )
-        ), JSON_UNESCAPED_UNICODE));
 
     }
 
@@ -627,3 +619,4 @@ class Util
         file_put_contents($file, '[' . date('Y-m-d H:i:s') . ']' . $content . "\n", FILE_APPEND);
     }
 }
+

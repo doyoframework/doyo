@@ -1,71 +1,95 @@
 <?php
+
 namespace Sdk;
 
+use Core\Util;
 use OSS\Core\OssException;
 use OSS\OssClient;
 
-class Alioss {
-	
+class Alioss
+{
+
+    /**
+     * @var OssClient
+     */
     private $ossClient;
 
-    public function __construct($accessId, $accessKey, $endpoint) {
+    public function __construct()
+    {
 
         try {
-            $this->ossClient = new OssClient($accessId, $accessKey, $endpoint);
-        } catch ( OssException $e ) {
+            $this->ossClient = new OssClient(OSS_KEY, OSS_SECRET, OSS_END_POINT);
+        } catch (OssException $e) {
             printf(__FUNCTION__ . "creating OssClient instance: FAILED\n");
             printf($e->getMessage() . "\n");
         }
-    
+
     }
 
-    public function upload($bucket, $path, $file) {
+    public function getObjectMeta($bucket, $path)
+    {
+        if ($path[0] == '/') {
+            $path = substr($path, 1);
+        }
 
-        $base = $path['base'] . $path['spath'];
-        $name = $base . $path['name'];
-        
-        $this->ossClient->createObjectDir($bucket, dirname($base));
-        
-        $options = array ();
-        
+        return $this->ossClient->getObjectMeta($bucket, $path);
+    }
+
+    public function listObjects($bucket)
+    {
+        return $this->ossClient->listObjects($bucket);
+    }
+
+    /**
+     * @param $bucket
+     * @param $path
+     * @param $file
+     * @throws OssException
+     */
+    public function upload($bucket, $path, $file)
+    {
+
+        if (is_array($path)) {
+            $name = $path['base'] . $path['spath'] . $path['name'];
+        } else {
+            $name = $path;
+        }
+
+        if ($name[0] == '/') {
+            $name = substr($name, 1);
+        }
+
+        $this->ossClient->createObjectDir($bucket, dirname($name));
+
+        $options = array();
+
         $options['Content-Type'] = $file['type'];
-        
+
         $this->ossClient->uploadFile($bucket, $name, $file['tmp_name'], $options);
-        
-        file_put_contents('/tmp/swoole.process.log', 'upload: ' . $file['tmp_name'] . "\n\n\n", FILE_APPEND);
-        
+
         @unlink($file['tmp_name']);
-    
+
     }
 
-    public function copy($bucket, $path, $type, $file) {
+    /**
+     * @param $bucket
+     * @param $path
+     */
+    public function delete($bucket, $path)
+    {
 
-        $base = $path['base'] . $path['spath'];
-        $name = $base . $path['name'];
-        
-        $this->ossClient->createObjectDir($bucket, dirname($base));
-        
-        $options = array ();
-        
-        $options['Content-Type'] = $type;
-        
-        $this->ossClient->uploadFile($bucket, $name, $file, $options);
-        
-        file_put_contents('/tmp/swoole.process.log', 'copy: ' . $file . "\n\n\n", FILE_APPEND);
-    
-    }
+        if (is_array($path)) {
+            $name = $path['base'] . $path['spath'] . $path['name'];
+        } else {
+            $name = $path;
+        }
 
-    public function delete($bucket, $path) {
+        if ($name[0] == '/') {
+            $name = substr($name, 1);
+        }
 
-        $base = $path['base'] . $path['spath'];
-        $name = $base . $path['name'];
-        
         $this->ossClient->deleteObject($bucket, $name);
-        
-        file_put_contents('/tmp/swoole.process.log', 'delete: ' . $name . "\n\n\n", FILE_APPEND);
-    
+
     }
 
 }
-
-?>

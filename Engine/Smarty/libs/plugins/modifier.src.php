@@ -23,7 +23,7 @@ function smarty_modifier_src($url) {
     if (substr(strtolower(trim($url)), 0, 2) == '//' || substr(strtolower(trim($url)), 0, 4) == 'http') {
         echo $url;
     } else {
-        echo 'http://' . FILE_SITE . $url;
+        echo FILE_HOST_PROTOCOL . FILE_SITE . $url;
     }
 
 }

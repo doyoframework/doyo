@@ -145,10 +145,11 @@ class BaseCtrl
      * @param $key
      * @param bool $notEmpty
      * @param bool $abs
-     * @return float|int|string
+     * @param string $msg
+     * @return bool|float|int
      * @throws \Exception\HTTPException
      */
-    protected final function getInteger($key, $notEmpty = false, $abs = false)
+    protected final function getInteger($key, $notEmpty = false, $abs = false, $msg = '')
     {
 
         if (is_numeric($key)) {
@@ -158,11 +159,16 @@ class BaseCtrl
         $val = isset($this->param[$key]) ? floatval($this->param[$key]) : false;
 
         if ($notEmpty && $val === false) {
-            throw Util::HTTPException($key . ' empty');
+            $msg = $msg != '' ? $msg : $key . ' empty';
+            throw Util::HTTPException($msg);
         }
 
         if ($val === false) {
             $val = 0;
+        }
+
+        if ($val == 0 && $msg != '') {
+            throw Util::HTTPException($msg);
         }
 
         if ($abs) {
@@ -244,12 +250,12 @@ class BaseCtrl
      *
      * @param $key
      * @param bool $notEmpty
+     * @param string $msg
      * @return string
      * @throws \Exception\HTTPException
      */
-    protected final function getString($key, $notEmpty = false)
+    protected final function getString($key, $notEmpty = false, $msg = '')
     {
-
         if (is_numeric($key)) {
             $key--;
         }
@@ -257,12 +263,17 @@ class BaseCtrl
         $val = isset($this->param[$key]) ? trim($this->param[$key]) : false;
 
         if ($notEmpty && $val === false) {
-            throw Util::HTTPException($key . ' empty');
+            $msg = $msg != '' ? $msg : $key . ' empty';
+            throw Util::HTTPException($msg);
         }
 
-        if(Util::is_json($val)) {
+        if ($val == '' && $msg != '') {
+            throw Util::HTTPException($msg);
+        }
+
+        if (Util::is_json($val)) {
             return strval($val);
-        }else{
+        } else {
             return addslashes(strval($val));
         }
     }
@@ -409,7 +420,7 @@ class BaseCtrl
         }
 
         if ($notEmpty) {
-            throw Util::HTTPException($key . ' error.');
+            throw Util::HTTPException($key . ' error.', -100);
         }
 
         return false;

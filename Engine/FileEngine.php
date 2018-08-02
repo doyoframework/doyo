@@ -13,23 +13,27 @@ class FileEngine
      * 验证文件大小
      *
      * @param $file
-     * @param int $size
+     * @param $type
      * @return array
      */
-    private function check_file_size($file, $size = FILE_SIZE)
+    private function check_file_size($file, $type)
     {
+        if ($this->is_image($type)) {
+            $size = IMAGE_SIZE;
+        } else {
+            $size = FILE_SIZE;
+        }
 
         if ($file['size'] > $size) {
             return array(
                 'code' => -1,
-                'msg' => 'file size error'
+                'msg' => "文件大小超过限制（{$size}）"
             );
         } else {
             return array(
                 'code' => 1
             );
         }
-
     }
 
     /**
@@ -63,6 +67,9 @@ class FileEngine
                 break;
             case 'xml' :
                 $stype = 'xml';
+                break;
+            case 'log' :
+                $stype = 'log';
                 break;
 
             case 'pdf' :
@@ -106,17 +113,12 @@ class FileEngine
 
             case '3gp' :
                 $stype = '3gp';
-
-                break;
-
-            case 'application/x-shockwave-flash' :
-                $stype = 'swf';
                 break;
 
             default :
                 return array(
                     'code' => -2,
-                    'msg' => 'file type error.'
+                    'msg' => '不支持的文件类型'
                 );
                 break;
         }
@@ -126,6 +128,102 @@ class FileEngine
         );
 
     }
+
+
+    /**
+     * 获得文件路径
+     *
+     * @param $index
+     * @param $sort
+     * @param $part
+     * @param $_type
+     * @param $_filename
+     * @return array
+     * @throws \Exception\HTTPException
+     */
+    public function set_file_path($index, $sort, $part, $_type, $_filename = false)
+    {
+
+        if ($sort[0] != '/') {
+            $sort = '/' . $sort;
+        }
+
+        if ($sort[strlen($sort) - 1] != '/') {
+            $sort .= '/';
+        }
+
+        $filename = $_filename;
+
+        if (!$_filename) {
+            $filename = uniqid();
+        }
+
+        $type = strtolower($_type);
+
+        $_path_num = array();
+
+        /**
+         * 判断是否是数字
+         */
+        if (!is_numeric($index)) {
+            throw Util::HTTPException('index error');
+        }
+
+        /**
+         * 获得数字基数
+         */
+        $_number = $index + 1000000000;
+
+        /**
+         * 获取数字分级
+         */
+        $_path_num[0] = substr($_number, 1, 3);
+        $_path_num[1] = substr($_number, 4, 3);
+
+        /**
+         * 获取临时文件名
+         */
+        $_tmp_name = substr($_number, 7);
+
+        /**
+         * 小路径
+         */
+        $spath = $sort . $_path_num[0] . '/' . $_path_num[1] . '/';
+
+        /**
+         * 全路径/data/nginx/htdocs/xxx.xxx.xxx/
+         */
+        $path = APP_PATH . '/' . WEBROOT . '/' . FILE_PATH . $spath;
+
+        /**
+         * 设置文件名称
+         */
+        $name = $_tmp_name . 'n' . strtoupper(substr(md5($index . FILE_TAGS . $part), 2, 6));
+
+        $src = '/' . FILE_PATH . $spath . $name . '.' . $type . '?t=' . time();
+
+        if (strtolower(FILE_SERVER_HOST) == 'localhost') {
+            $url = $src;
+        } else {
+            $url = FILE_HOST_PROTOCOL . FILE_SITE . $src;
+        }
+
+        return array(
+            'sort' => $sort,
+            'type' => $type,
+            'filename' => $filename,
+            'name' => $name . '.' . $type,
+            'tname' => $name . '_tmp.' . $type,
+            'sname' => $name . '_small.' . $type,
+            'base' => FILE_PATH,
+            'spath' => $spath,
+            'path' => $path,
+            'src' => $src,
+            'url' => $url
+        );
+
+    }
+
 
     /**
      * 开始上传
@@ -142,6 +240,7 @@ class FileEngine
      * @param bool $copy
      * @return array|bool
      * @throws \Exception\HTTPException
+     * @throws \OSS\Core\OssException
      */
     public function upload($file, $index, $sort = '/', $part = 0, $maxW = 0, $maxH = 0, $minW = 0, $minH = 0, $lock = true, $copy = false)
     {
@@ -149,20 +248,22 @@ class FileEngine
         if (is_string($file)) {
             $file = $_FILES[$file];
         }
+
         if (empty($file)) {
             return false;
-        }
-
-        // 判断大小
-        $size = $this->check_file_size($file);
-        if ($size['code'] !== 1) {
-            throw Util::HTTPException($size['msg']);
         }
 
         // 判断类型
         $type = $this->check_file_type($file['name']);
         if ($type['code'] !== 1) {
             throw Util::HTTPException($type['msg']);
+        }
+
+        // 判断大小
+        $size = $this->check_file_size($file, $type['type']);
+
+        if ($size['code'] !== 1) {
+            throw Util::HTTPException($size['msg']);
         }
 
         // 设置目录和名称
@@ -184,20 +285,22 @@ class FileEngine
             echo 'lock: ' . $lock;
             echo '<br/>';
         }
+
         if (strtolower(FILE_SERVER_HOST) != 'localhost') {
 
             if (strtolower(FILE_SERVER_HOST) == 'alioss') {
 
                 move_uploaded_file($file['tmp_name'], $file['tmp_name']);
 
-                Util::async('Sdk\Alioss', 'upload', array(
-                    $path,
-                    $file
-                ));
+                $alioss = Util::loadOss();
+                $alioss->upload(OSS_BUCKET, $path, $file);
+
             } else {
 
-                $this->do_upload($file, $path, $maxW, $maxH, $minW, $minH, $lock, $copy);
+                $this->xmlrpc_upload($file, $path, $maxW, $maxH, $minW, $minH, $lock, $copy);
+
             }
+
         } else {
 
             // 创建目录
@@ -215,12 +318,12 @@ class FileEngine
 
                 // 按照最大宽高保存图片
                 if ($maxW || $maxH) {
-                    $this->_resave($npath, $maxW, $maxH, $npath, $lock);
+                    $this->resize($npath, $maxW, $maxH, $npath, $lock);
                 }
 
                 // 按照最小宽高保存缩略图片
                 if ($minW || $minH) {
-                    $this->_resave($npath, $minW, $minH, $spath, $lock);
+                    $this->resize($npath, $minW, $minH, $spath, $lock);
                 }
             }
         }
@@ -253,19 +356,20 @@ class FileEngine
 
             if (strtolower(FILE_SERVER_HOST) == 'alioss') {
 
-                Util::async('Sdk\Alioss', 'delete', array(
-                    $path
-                ));
+                $alioss = Util::loadOss();
+                $alioss->delete(OSS_BUCKET, $path);
+
             } else {
-                $this->do_delete($path);
+
+                $this->xmlrpc_delete($path);
+
             }
+
         } else {
 
-            $dirs = $path['path'];
-
-            $npath = $dirs . $path['name'];
-            $tpath = $dirs . $path['tname'];
-            $spath = $dirs . $path['sname'];
+            $npath = $path['path'] . $path['name'];
+            $tpath = $path['path'] . $path['tname'];
+            $spath = $path['path'] . $path['sname'];
 
             if (file_exists($npath)) {
                 unlink($npath);
@@ -279,16 +383,11 @@ class FileEngine
                     unlink($spath);
                 }
             }
+
         }
 
     }
 
-    public function read($file)
-    {
-
-        return file($file['tmp_name']);
-
-    }
 
     /**
      * @param $data
@@ -299,15 +398,32 @@ class FileEngine
      * @param bool $copy
      * @return array
      * @throws \Exception\HTTPException
+     * @throws \OSS\Core\OssException
      */
     public function resave($data, $index, $sort, $part, $type, $copy = false)
     {
 
         $path = $this->set_file_path($index, $sort, $part, $type);
 
+        // 创建目录
+        Util::mkdirs($path['path']);
+
+        $npath = $path['path'] . $path['name'];
+        $tpath = $path['path'] . $path['tname'];
+
+        // 保存写入文件
+        file_put_contents($npath, $data);
+
         if (strtolower(FILE_SERVER_HOST) != 'localhost') {
 
             if (strtolower(FILE_SERVER_HOST) == 'alioss') {
+
+                $alioss = Util::loadOss();
+                $file = array();
+                $file['type'] = $type;
+                $file['tmp_name'] = $npath;
+                $alioss->upload(OSS_BUCKET, $path, $file);
+
             } else {
                 // 将文件base64编码
                 $contents = base64_encode($data);
@@ -326,16 +442,6 @@ class FileEngine
                 $this->xmlrpc_request('insert', $args);
             }
         } else {
-
-            // 创建目录
-            Util::mkdirs($path['path']);
-
-            $npath = $path['path'] . $path['name'];
-            $tpath = $path['path'] . $path['tname'];
-
-            // 保存写入文件
-            file_put_contents($npath, $data);
-
             // 是否创建副本
             if ($copy) {
                 file_put_contents($tpath, $data);
@@ -343,6 +449,13 @@ class FileEngine
         }
 
         return $path;
+
+    }
+
+    public function read($file)
+    {
+
+        return file_get_contents($file['tmp_name']);
 
     }
 
@@ -354,7 +467,6 @@ class FileEngine
      */
     private function is_image($type)
     {
-
         if (in_array(strtolower($type), array(
             'jpg',
             'gif',
@@ -363,7 +475,6 @@ class FileEngine
             return true;
         }
         return false;
-
     }
 
     /**
@@ -377,7 +488,7 @@ class FileEngine
      * @param $copy
      * @return bool|mixed
      */
-    private function do_upload($file, $path, $maxW, $maxH, $minW, $minH, $lock, $copy)
+    private function xmlrpc_upload($file, $path, $maxW, $maxH, $minW, $minH, $lock, $copy)
     {
 
         // 将文件以二进制读取到一个对象内
@@ -415,99 +526,12 @@ class FileEngine
     }
 
     /**
-     * 获得文件路径
-     *
-     * @param $index
-     * @param $sort
-     * @param $part
-     * @param $_type
-     * @param $_filename
-     * @return array
-     * @throws \Exception\HTTPException
-     */
-    public function set_file_path($index, $sort, $part, $_type, $_filename = false)
-    {
-
-        if ($sort[0] != '/') {
-            $sort = '/' . $sort;
-        }
-
-        if ($sort[strlen($sort) - 1] != '/') {
-            $sort .= '/';
-        }
-
-        $filename = $_filename;
-
-        if (!$_filename) {
-            $filename = uniqid();
-        }
-
-        $type = strtolower($_type);
-
-        $_path_num = array();
-
-        /**
-         * 判断是否是数字
-         */
-        if (is_numeric($index)) {
-            /**
-             * 获得数字基数
-             */
-            $_number = $index + 1000000000;
-
-            /**
-             * 获取数字分级
-             */
-            $_path_num[0] = substr($_number, 1, 3);
-            $_path_num[1] = substr($_number, 4, 3);
-
-            /**
-             * 获取临时文件名
-             */
-            $_tmp_name = substr($_number, 7);
-
-            /**
-             * 小路径
-             */
-            $spath = $sort . $_path_num[0] . '/' . $_path_num[1] . '/';
-
-            /**
-             * 全路径
-             */
-            $path = APP_PATH . '/' . WEBROOT . '/' . FILE_PATH . $spath;
-
-            /**
-             * 设置文件名称
-             */
-            $_tmp_ = $_tmp_name . 'n' . strtoupper(substr(md5($index . FILE_TAGS . $part), 2, 6));
-        } else {
-            throw Util::HTTPException('index error');
-        }
-
-        $src = '/' . FILE_PATH . $spath . $_tmp_ . '.' . $type . '?t=' . time();
-
-        return array(
-            'sort' => $sort,
-            'type' => $type,
-            'filename' => $filename,
-            'name' => ($_tmp_ . '.' . $type),
-            'tname' => ($_tmp_ . '_tmp.' . $type),
-            'sname' => ($_tmp_ . '_small.' . $type),
-            'base' => FILE_PATH,
-            'spath' => $spath,
-            'path' => $path,
-            'src' => $src
-        );
-
-    }
-
-    /**
      * 删除远程文件
      *
      * @param $path
      * @return bool|mixed
      */
-    private function do_delete($path)
+    private function xmlrpc_delete($path)
     {
 
         $args = array(
@@ -569,6 +593,7 @@ class FileEngine
 
     }
 
+
     /**
      * 设置缩略图
      *
@@ -578,7 +603,7 @@ class FileEngine
      * @param $npath
      * @param bool $lock
      */
-    private function _resave($path, $ruleW, $ruleH, $npath, $lock = true)
+    private function resize($path, $ruleW, $ruleH, $npath, $lock = true)
     {
 
         $iminfo = getimagesize($path);

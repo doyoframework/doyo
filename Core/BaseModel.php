@@ -183,7 +183,15 @@ class BaseModel
     public final function __toData()
     {
 
-        return (array)$this->entity;
+        $data = array();
+
+        foreach ($this->entity as $key => $value) {
+            if (!in_array($key, ['DB_CONFIG', 'TABLE_PREFIX', 'PRIMARY_KEY', 'PRIMARY_VAL'])) {
+                $data[$key] = $value;
+            }
+        }
+
+        return $data;
 
     }
 
@@ -196,11 +204,18 @@ class BaseModel
     public final function read($primary_val, $expires = 0)
     {
 
-        $node = $this->node("where `{$this->entity->PRIMARY_KEY}` = '{$primary_val}'", '*', $expires);
+        //优先查询缓存
+        $exists = $this->load($primary_val);
 
-        if (isset($node[$this->entity->PRIMARY_KEY])) {
-            $this->entity->PRIMARY_VAL = $primary_val;
+        //缓存不存在，继续查询数据库
+        if (!$exists) {
+            $node = $this->node("where `{$this->entity->PRIMARY_KEY}` = '{$primary_val}'", '*', $expires);
+            $this->save();
+        } else {
+            $node = $this->__toData();
         }
+
+        $this->PRIMARY_VAL = $primary_val;
 
         return $node;
 
@@ -219,6 +234,17 @@ class BaseModel
         }
 
         $status = $this->delete("where `{$this->entity->PRIMARY_KEY}` = '{$this->entity->PRIMARY_VAL}'");
+
+        //清空缓存
+        if (isset($GLOBALS['DATABASE']) && isset($GLOBALS['DATABASE'][$this->entity->DB_CONFIG])) {
+            $config = $GLOBALS['DATABASE'][$this->entity->DB_CONFIG];
+            $entry = strtolower($this->ENTITY_NAME);
+            if (isset($config['cache']) && isset($config['cache'][$entry])) {
+                $key = $entry . '_' . $this->entity->PRIMARY_KEY . '_' . $this->entity->PRIMARY_VAL;
+                $redis = Util::loadRedis('cache' . $entry, $config['cache'][$entry]);
+                $redis->delete($key);
+            }
+        }
 
         $this->entity = Util::loadCls('Entity\\' . $this->ENTITY_NAME);
 
@@ -245,6 +271,8 @@ class BaseModel
         }
 
         $status = $this->update("where `{$this->entity->PRIMARY_KEY}` = '{$this->entity->PRIMARY_VAL}'", $this->__setter);
+
+        $this->save();
 
         $this->__setter = array();
 
@@ -274,8 +302,85 @@ class BaseModel
                 $this->entity->PRIMARY_VAL = $node[$this->entity->PRIMARY_KEY];
             }
         }
+
         return true;
 
+    }
+
+    /**
+     * @param bool $setter
+     * @throws \Exception\HTTPException
+     */
+    public final function save($setter = true)
+    {
+        if (!isset($GLOBALS['DATABASE']) || !isset($GLOBALS['DATABASE'][$this->entity->DB_CONFIG])) {
+            return;
+        }
+
+        $config = $GLOBALS['DATABASE'][$this->entity->DB_CONFIG];
+        $entry = strtolower($this->ENTITY_NAME);
+
+        if (!isset($config['cache']) || !isset($config['cache'][$entry])) {
+            return;
+        }
+
+        if (!$this->entity->PRIMARY_VAL) {
+            return;
+        }
+
+        $key = $entry . '_' . $this->entity->PRIMARY_KEY . '_' . $this->entity->PRIMARY_VAL;
+
+        $redis = Util::loadRedis('cache' . $entry, $config['cache'][$entry]);
+
+        if ($setter) {
+            $redis->hashSetMulti($key, $this->__setter);
+        } else {
+            $redis->hashSetMulti($key, $this->__toData());
+        }
+    }
+
+    /**
+     * @param $primary_val
+     * @return bool
+     * @throws \Exception\HTTPException
+     */
+    public final function load($primary_val)
+    {
+        if (!isset($GLOBALS['DATABASE']) || !isset($GLOBALS['DATABASE'][$this->entity->DB_CONFIG])) {
+            return false;
+        }
+
+        $config = $GLOBALS['DATABASE'][$this->entity->DB_CONFIG];
+        $entry = strtolower($this->ENTITY_NAME);
+        if (!isset($config['cache']) || !isset($config['cache'][$entry])) {
+            return false;
+        }
+
+        if (!$primary_val) {
+            return false;
+        }
+
+        $key = $entry . '_' . $this->entity->PRIMARY_KEY . '_' . $primary_val;
+
+        $redis = Util::loadRedis('cache' . $entry, $config['cache'][$entry]);
+
+        $this->exists = $redis->exists($key);
+
+        if (!$this->exists) {
+            return false;
+        }
+
+        $data = $redis->hashGetAll($key);
+
+        foreach ($this->entity as $k => $v) {
+            if (isset($data[$k])) {
+                $this->entity->$k = $data[$k];
+            }
+        }
+
+        $this->entity->PRIMARY_VAL = $primary_val;
+
+        return true;
     }
 
     /**
@@ -313,6 +418,7 @@ class BaseModel
             $res->free_result();
 
             return $data;
+
         } else if ($mode == MYSQL_QUERY_RESULT) {
 
             return $res;
@@ -342,10 +448,19 @@ class BaseModel
             throw Util::HTTPException('data is null.');
         }
 
+        $insert_id = $this->mysql->insert($table, $array);
+
+        if ($insert_id > 0) {
+            $this->entity->PRIMARY_VAL = $insert_id;
+            $this->save();
+        }
+
         $this->__setter = array();
 
-        return $this->mysql->insert($table, $array);
+        //新增数据，清空缓存
+        $this->flushDB();
 
+        return $insert_id;
     }
 
     /**
@@ -354,13 +469,31 @@ class BaseModel
      * @return int
      * @throws \Exception\HTTPException
      */
-    public final function update($where, $array)
+    private final function update($where, $array)
     {
-
         $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
-        return $this->mysql->update($table, $array, $where);
+        $ret = $this->mysql->update($table, $array, $where);
 
+        //更新数据，清空缓存
+        $this->flushDB();
+
+        return $ret;
+    }
+
+    /**
+     * 清空缓存
+     */
+    public final function flushDB()
+    {
+        if ($this->redis && $this->cache > 0) {
+            $hash_key = strtoupper($this->ENTITY_NAME) . '_SQL';
+            $list = $this->redis->hashGetAll($hash_key);
+            foreach ($list as $k => $v) {
+                $this->redis->delete($k);
+            }
+            $this->redis->delete($hash_key);
+        }
     }
 
     /**
@@ -368,13 +501,17 @@ class BaseModel
      * @return int
      * @throws \Exception\HTTPException
      */
-    public final function delete($where = 'where 1 = 1')
+    private final function delete($where = 'where 1 = 1')
     {
 
         $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
-        return $this->mysql->delete($table, $where);
+        $ret = $this->mysql->delete($table, $where);
 
+        //删除数据，清空缓存
+        $this->flushDB();
+
+        return $ret;
     }
 
     /**
@@ -403,7 +540,7 @@ class BaseModel
      */
     public final function count($where)
     {
-        $node = $this->node($where, "count(*) as total");
+        $node = $this->node($where, "count(*) as total", $this->cache);
 
         return $node['total'];
     }
@@ -422,7 +559,13 @@ class BaseModel
 
         $cache_key = md5(md5($table) . md5($where) . md5($field));
 
-        if (isset($GLOBALS['REDIS']['cache']) && $expires > 0 && $this->redis->exists($cache_key)) {
+        if ($expires == 0 && $this->cache > 0) {
+            $expires = $this->cache;
+        }
+
+        $exists = $this->redis && $expires > 0 && $this->redis->exists($cache_key);
+
+        if ($exists) {
             $node = json_decode($this->redis->get($cache_key), true);
         } else {
             $node = $this->mysql->node($table, $where, $field);
@@ -430,8 +573,12 @@ class BaseModel
 
         if (!empty($node)) {
 
-            if ($expires > 0) {
-                $this->redis->set($cache_key, json_encode($node, JSON_UNESCAPED_UNICODE), $expires);
+            if ($this->redis && $expires > 0) {
+                $this->redis->zIncrBy(strtoupper($this->ENTITY_NAME) . '_SQL_COUNT', 1, $cache_key);
+                if (!$exists) {
+                    $this->redis->hashSet(strtoupper($this->ENTITY_NAME) . '_SQL', $cache_key, $this->mysql->last_query_sql());
+                    $this->redis->set($cache_key, json_encode($node, JSON_UNESCAPED_UNICODE), $expires);
+                }
             }
 
             foreach ($this->entity as $key => $val) {
@@ -571,14 +718,18 @@ class BaseModel
 
         $cache_key = md5($table . $where . $field . $limit . $page . $offset);
 
-        if (isset($GLOBALS['REDIS']['cache']) && $this->cache > 0 && $this->redis->exists($cache_key)) {
+        $exists = $this->redis && $this->cache > 0 && $this->redis->exists($cache_key);
 
+        if ($exists) {
             $data = json_decode($this->redis->get($cache_key), true);
-
         } else {
             $data = $this->mysql->select($table, $where, $field, $limit, $page, $offset);
+        }
 
-            if (isset($GLOBALS['REDIS']['cache']) && $this->cache > 0) {
+        if ($this->redis && $this->cache > 0) {
+            $this->redis->zIncrBy(strtoupper($this->ENTITY_NAME) . '_SQL_COUNT', 1, $cache_key);
+            if (!$exists) {
+                $this->redis->hashSet(strtoupper($this->ENTITY_NAME) . '_SQL', $cache_key, $this->mysql->last_query_sql());
                 $this->redis->set($cache_key, json_encode($data, JSON_UNESCAPED_UNICODE), $this->cache);
             }
         }
