@@ -602,6 +602,7 @@ class BaseCtrl
     public final function display_json()
     {
 
+        header('Content-Type: text/json; charset=' . CHARSET);
         Context::HttpDispatcher()->model = 'JSON';
 
     }
@@ -612,6 +613,7 @@ class BaseCtrl
     public final function display_html()
     {
 
+        header('Content-Type: text/html; charset=' . CHARSET);
         Context::HttpDispatcher()->model = 'HTML';
 
     }
