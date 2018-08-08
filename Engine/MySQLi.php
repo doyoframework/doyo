@@ -106,6 +106,7 @@ class MySQLi
         file_put_contents(SQL_LOG_PATH, $sql . "\n", FILE_APPEND);
 
         $res = $this->mysql->query($sql);
+
         if ($this->mysql->more_results()) {
             $this->mysql->next_result();
         }
@@ -464,6 +465,33 @@ class MySQLi
 
         return $data;
 
+    }
+
+    /**
+     * @throws \Exception\HTTPException
+     */
+    public function begin()
+    {
+        $this->query('set autocommit = 0;');
+        $this->query('begin;');
+    }
+
+    /**
+     * @throws \Exception\HTTPException
+     */
+    public function commit()
+    {
+        $this->query('commit;');
+        $this->query('set autocommit = 1;');
+    }
+
+    /**
+     * @throws \Exception\HTTPException
+     */
+    public function rollback()
+    {
+        $this->query('rollback;');
+        $this->query('set autocommit = 1;');
     }
 
     /**

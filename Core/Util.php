@@ -3,6 +3,7 @@
 namespace Core;
 
 use Engine\RedisEngine;
+use Engine\RedLock;
 use Exception\HTTPException;
 use Sdk\QRCode;
 
@@ -83,7 +84,7 @@ class Util
      * 加载Ctrl类
      *
      * @param $clsName
-     * @return BaseCtrl
+     * @return BaseCtrl|object
      */
     public static function loadCtrl($clsName)
     {
@@ -96,7 +97,7 @@ class Util
     /**
      * * 初始化upload配置
      *
-     * @return \Engine\FileEngine
+     * @return \Engine\FileEngine|object
      */
     public static function initFiles()
     {
@@ -108,7 +109,7 @@ class Util
     /**
      * 加载短信发送类
      *
-     * @return \Alisms
+     * @return \Alisms|object
      */
     public static function loadSms()
     {
@@ -120,13 +121,36 @@ class Util
     /**
      * 加载短信发送类
      *
-     * @return \Sdk\Alioss
+     * @return \Sdk\Alioss|object
      */
     public static function loadOss()
     {
 
         return Util::loadCls("Sdk\Alioss");
 
+    }
+
+    /**
+     * @var RedLock
+     */
+    private static $lock = null;
+
+
+    /**
+     * @param $server
+     *
+     * @return RedLock
+     */
+    public static function redLock($server = array())
+    {
+        if (self::$lock == null) {
+            if (empty($server)) {
+                self::$lock = new RedLock($GLOBALS['REDIS']['lock']);
+            } else {
+                self::$lock = new RedLock($server);
+            }
+        }
+        return self::$lock;
     }
 
     /**
@@ -616,6 +640,7 @@ class Util
         if (!$file) {
             $file = '/tmp/doyo.' . date('Y-m-d') . '.log';
         }
+
         file_put_contents($file, '[' . date('Y-m-d H:i:s') . ']' . $content . "\n", FILE_APPEND);
     }
 }

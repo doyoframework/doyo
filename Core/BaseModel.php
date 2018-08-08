@@ -308,6 +308,30 @@ class BaseModel
     }
 
     /**
+     * @throws \Exception\HTTPException
+     */
+    public final function begin()
+    {
+        $this->mysql->begin();
+    }
+
+    /**
+     * @throws \Exception\HTTPException
+     */
+    public final function commit()
+    {
+        $this->mysql->commit();
+    }
+
+    /**
+     * @throws \Exception\HTTPException
+     */
+    public final function rollback()
+    {
+        $this->mysql->rollback();
+    }
+
+    /**
      * @param bool $setter
      * @throws \Exception\HTTPException
      */

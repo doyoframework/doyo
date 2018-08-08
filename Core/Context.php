@@ -141,11 +141,17 @@ class Context
             );
 
             if ($exception instanceof HTTPException) {
+                $code = $exception->errCode();
+                if ($code != -1) {
+                    $exceptionHash['code'] = $code;
+                }
+
                 $data = $exception->errData();
                 if ($data) {
                     $exceptionHash['data'] = $data;
                 }
             }
+
         } else {
 
             $exceptionHash = array(
@@ -153,6 +159,11 @@ class Context
             );
 
             if ($exception instanceof HTTPException) {
+                $code = $exception->errCode();
+                if ($code != -1) {
+                    $exceptionHash['code'] = $code;
+                }
+
                 $data = $exception->errData();
                 if ($data) {
                     $exceptionHash['data'] = $data;
@@ -192,7 +203,52 @@ class Context
         }
 
         if (defined('THROW_LOG_PATH')) {
-            file_put_contents(THROW_LOG_PATH, json_encode($exceptionHash, JSON_UNESCAPED_UNICODE), FILE_APPEND);
+
+            $logs = array(
+                'message' => $exception->getMessage()
+            );
+
+            if ($exception instanceof HTTPException) {
+                $code = $exception->errCode();
+                if ($code != -1) {
+                    $logs['code'] = $code;
+                }
+
+                $data = $exception->errData();
+                if ($data) {
+                    $logs['data'] = $data;
+                }
+            }
+
+            $traceItems = $exception->getTrace();
+
+            foreach ($traceItems as $traceItem) {
+                $traceHash = array(
+                    'file' => $traceItem['file'],
+                    'line' => $traceItem['line'],
+                    'function' => $traceItem['function'],
+                    'args' => array()
+                );
+
+                if (!empty($traceItem['class'])) {
+                    $traceHash['class'] = $traceItem['class'];
+                }
+
+                if (!empty($traceItem['type'])) {
+                    $traceHash['type'] = $traceItem['type'];
+                }
+
+                if (!empty($traceItem['args'])) {
+                    foreach ($traceItem['args'] as $argsItem) {
+                        $traceHash['args'][] = var_export($argsItem, true);
+                    }
+                }
+
+                $logs['trace'][] = $traceHash;
+
+            }
+
+            Util::logs(json_encode($logs, JSON_UNESCAPED_UNICODE), THROW_LOG_PATH);
         }
 
         return $exceptionHash;

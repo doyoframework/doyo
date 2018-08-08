@@ -196,14 +196,22 @@ class BaseCtrl
         }
 
         if (isset($this->param[$key])) {
-            if (!is_numeric($this->param[$key])) {
+            if (is_bool($this->param[$key])) {
+
+                return $this->param[$key];
+
+            } else if (!is_numeric($this->param[$key])) {
+
                 if (strtolower($this->param[$key]) == 'true') {
                     return true;
                 }
+
             } else {
+
                 if ($this->param[$key] > 0) {
                     return true;
                 }
+
             }
         }
 
@@ -706,7 +714,6 @@ class BaseCtrl
      */
     public final function connection_bind($pid)
     {
-
         if ($this->svr->exist($this->fd)) {
             $this->svr->bind($this->fd, $pid);
         } else {
