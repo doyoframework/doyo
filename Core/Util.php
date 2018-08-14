@@ -288,6 +288,7 @@ class Util
             }
         }
 
+        return '';
     }
 
     /**
@@ -304,6 +305,8 @@ class Util
     {
 
         $iminfo = getimagesize($path);
+
+        $im = null;
 
         switch ($iminfo[2]) {
             case 1 :
@@ -351,6 +354,7 @@ class Util
             $newW = $iminfo[0];
             $newH = $iminfo[1];
         }
+
         $imN = imagecreatetruecolor($newW, $newH);
         imagecopyresampled($imN, $im, 0, 0, 0, 0, $newW, $newH, $iminfo[0], $iminfo[1]);
         switch ($iminfo[2]) {
@@ -383,6 +387,19 @@ class Util
 
         return REWRITE . $url;
 
+    }
+
+    /**
+     * 写入文件
+     *
+     * @param $path
+     * @param $data
+     */
+    public static function write($path, $data)
+    {
+        $fp = fopen($path, 'w');
+        fwrite($fp, $data);
+        fclose($fp);
     }
 
     /**
@@ -488,15 +505,19 @@ class Util
     public static function send_mail($to, $title, $body, $attach = array())
     {
 
-        Util::async('Engine\MailEngine', 'send', array(
-            $to,
-            $title,
-            $body,
-            $attach
-        ));
+    }
 
-        file_put_contents('/tmp/swoole.process.log', 'mail send: ' . $title . "\n\n\n", FILE_APPEND);
+    /**
+     * @param $data
+     * @throws HTTPException
+     */
+    public static function async($data)
+    {
+        $crontab = Util::loadRedis('crontab');
 
+        $data = json_encode($data, JSON_UNESCAPED_UNICODE);
+
+        $crontab->lpush('async', $data);
     }
 
     /**
@@ -604,7 +625,7 @@ class Util
     public static function parseXML($xml)
     {
 
-        return array();
+        return $xml;
     }
 
     /**
@@ -614,7 +635,7 @@ class Util
     public static function toXml($ary)
     {
 
-        return "";
+        return $ary;
     }
 
     /**

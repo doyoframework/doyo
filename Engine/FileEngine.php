@@ -390,29 +390,22 @@ class FileEngine
 
 
     /**
-     * @param $data
+     * @param $filepath
      * @param $index
      * @param $sort
      * @param $part
      * @param $type
-     * @param bool $copy
      * @return array
      * @throws \Exception\HTTPException
      * @throws \OSS\Core\OssException
      */
-    public function resave($data, $index, $sort, $part, $type, $copy = false)
+    public function resave($filepath, $index, $sort, $part, $type)
     {
 
         $path = $this->set_file_path($index, $sort, $part, $type);
 
         // 创建目录
         Util::mkdirs($path['path']);
-
-        $npath = $path['path'] . $path['name'];
-        $tpath = $path['path'] . $path['tname'];
-
-        // 保存写入文件
-        file_put_contents($npath, $data);
 
         if (strtolower(FILE_SERVER_HOST) != 'localhost') {
 
@@ -421,12 +414,13 @@ class FileEngine
                 $alioss = Util::loadOss();
                 $file = array();
                 $file['type'] = $type;
-                $file['tmp_name'] = $npath;
+                $file['tmp_name'] = $filepath;
                 $alioss->upload(OSS_BUCKET, $path, $file);
 
             } else {
+
                 // 将文件base64编码
-                $contents = base64_encode($data);
+                $contents = base64_encode(file_get_contents($filepath));
 
                 $args = array(
                     $path,
@@ -436,16 +430,19 @@ class FileEngine
                     false,
                     false,
                     false,
-                    $copy
+                    false,
                 );
 
                 $this->xmlrpc_request('insert', $args);
             }
+
         } else {
-            // 是否创建副本
-            if ($copy) {
-                file_put_contents($tpath, $data);
-            }
+
+            $npath = $path['path'] . $path['name'];
+
+            // 保存写入文件
+            file_put_contents($npath, file_get_contents($filepath));
+
         }
 
         return $path;

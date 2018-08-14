@@ -8,6 +8,7 @@ class SocketDispatcher
 {
 
     private static $svr;
+
     /**
      * 分发器
      *
@@ -64,7 +65,7 @@ class SocketDispatcher
 
         $array = array(
             'code' => $code,
-            'op' => $op,
+            'op' => intval($op),
             'version' => VERSION,
             'unixtime' => Util::millisecond(),
             'data' => $data

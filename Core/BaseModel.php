@@ -281,6 +281,16 @@ class BaseModel
     }
 
     /**
+     * 返回查询的结果行数
+     *
+     * @return int
+     */
+    public final function rows()
+    {
+        return count($this->__result_clone);
+    }
+
+    /**
      * 循环读取数据
      *
      * @return bool
@@ -410,14 +420,19 @@ class BaseModel
     /**
      * 清空表（慎用）
      *
+     * @param bool $truncate
      * @throws \Exception\HTTPException
      */
-    public final function truncate()
+    public final function truncate($truncate = true)
     {
 
         $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
-        $this->mysql->query("truncate {$table};");
+        if ($truncate) {
+            $this->mysql->query("truncate {$table};");
+        } else {
+            $this->delete();
+        }
 
     }
 
@@ -562,7 +577,7 @@ class BaseModel
      * @return mixed
      * @throws \Exception\HTTPException
      */
-    public final function count($where)
+    public final function count($where = "where 1 = 1")
     {
         $node = $this->node($where, "count(*) as total", $this->cache);
 
