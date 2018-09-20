@@ -131,6 +131,30 @@ class Util
     }
 
     /**
+     * 定时任务单例
+     * @var array
+     */
+    private static $crontab = array();
+
+    /**
+     * 加载定时任务
+     *
+     * @param $tags
+     * @param string $config
+     * @return \Engine\CrontabEngine
+     */
+    public static function loadCrontab($tags = 'CRONTAB', $config = 'crontab')
+    {
+
+        if (!isset(self::$crontab[$tags])) {
+            $className = 'Engine\\CrontabEngine';
+            self::$crontab[$tags] = new $className($tags, $config);
+        }
+
+        return self::$crontab[$tags];
+    }
+
+    /**
      * @var RedLock
      */
     private static $lock = null;
@@ -177,10 +201,10 @@ class Util
     public static function id_path($id)
     {
         // str_pad
-        $pathNum = 1000000000 + $id;
-        $pathNumA = substr($pathNum, 1, 3);
+        $pathNum = 10000000000 + $id;
+        $pathNumA = substr($pathNum, 1, 4);
         $pathNumB = substr($pathNum, 4, 3);
-        $pathNumC = substr($pathNum, 7, 3);
+        $pathNumC = substr($pathNum, 8, 3);
         $user_path = $pathNumA . '/' . $pathNumB . '/' . $pathNumC;
         return $user_path;
 
@@ -413,7 +437,6 @@ class Util
      */
     public static function curl_request($url, $type = 'GET', $params = false, $header = array())
     {
-
         $ch = curl_init();
 
         $timeout = 30;
@@ -504,6 +527,21 @@ class Util
      */
     public static function send_mail($to, $title, $body, $attach = array())
     {
+
+    }
+
+    /**
+     * @param $op
+     * @param $param
+     * @throws HTTPException
+     */
+    public static function task($op, $param)
+    {
+        //向Redis队列增加一条数据
+        $data = array();
+        $data['op'] = $op;
+        $data['param'] = $param;
+        Util::async($data);
 
     }
 

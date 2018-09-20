@@ -28,6 +28,11 @@ class HTTPDispatcher
      */
     public $model = 'HTML';
 
+    /**
+     * 参数
+     *
+     * @var array
+     */
     public $params = array();
 
     /**
@@ -117,7 +122,9 @@ class HTTPDispatcher
             }
         }
 
-        if (!class_exists($className)) {
+        $fullname = $className . '.' . $methodName;
+
+        if (!class_exists($className) || in_array($fullname, $GLOBALS['IGNORE'])) {
             header('HTTP/1.1 404 Not Found');
             echo '404';
             exit();

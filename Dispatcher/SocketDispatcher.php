@@ -49,7 +49,7 @@ class SocketDispatcher
                 $ctrl->send($op, $ret);
             }
         } else {
-            echo "\n";
+            echo "error {$op}\n";
         }
 
     }

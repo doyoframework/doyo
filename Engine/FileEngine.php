@@ -115,6 +115,14 @@ class FileEngine
                 $stype = '3gp';
                 break;
 
+            case 'amr' :
+                $stype = 'amr';
+                break;
+
+            case 'wav' :
+                $stype = 'wav';
+                break;
+
             default :
                 return array(
                     'code' => -2,
@@ -172,18 +180,18 @@ class FileEngine
         /**
          * 获得数字基数
          */
-        $_number = $index + 1000000000;
+        $_number = $index + 10000000000;
 
         /**
          * 获取数字分级
          */
-        $_path_num[0] = substr($_number, 1, 3);
+        $_path_num[0] = substr($_number, 1, 4);
         $_path_num[1] = substr($_number, 4, 3);
 
         /**
          * 获取临时文件名
          */
-        $_tmp_name = substr($_number, 7);
+        $_tmp_name = substr($_number, 8);
 
         /**
          * 小路径
@@ -599,8 +607,9 @@ class FileEngine
      * @param $ruleH
      * @param $npath
      * @param bool $lock
+     * @param int $quality
      */
-    private function resize($path, $ruleW, $ruleH, $npath, $lock = true)
+    public function resize($path, $ruleW, $ruleH, $npath, $lock = true, $quality = 80)
     {
 
         $iminfo = getimagesize($path);
@@ -662,7 +671,7 @@ class FileEngine
                 imagegif($imN, $npath);
                 break;
             case '2' :
-                imagejpeg($imN, $npath, 100);
+                imagejpeg($imN, $npath, $quality);
                 break;
             case '3' :
                 imagepng($imN, $npath);

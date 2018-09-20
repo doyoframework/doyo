@@ -316,6 +316,8 @@ class MySQLi
     public function insert($table, $array)
     {
 
+        $this->checkConnection();
+
         $key = array();
         $val = array();
         $va2 = array();

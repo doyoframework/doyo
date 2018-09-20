@@ -2,7 +2,6 @@
 
 namespace Sdk;
 
-use Core\Util;
 use OSS\Core\OssException;
 use OSS\OssClient;
 
@@ -35,6 +34,11 @@ class Alioss
         return $this->ossClient->getObjectMeta($bucket, $path);
     }
 
+    /**
+     * @param $bucket
+     * @return \OSS\Model\ObjectListInfo
+     * @throws OssException
+     */
     public function listObjects($bucket)
     {
         return $this->ossClient->listObjects($bucket);

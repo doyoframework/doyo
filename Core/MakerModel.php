@@ -71,7 +71,7 @@ class MakerModel
         $model[] = '';
         $model[] = 'use Core\Util;';
         $model[] = '';
-        $model[] = 'class Model extends IModel';
+        $model[] = 'class Model';
         $model[] = '{';
         $model[] = '';
 

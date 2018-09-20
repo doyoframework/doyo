@@ -161,6 +161,17 @@ class BaseModel
     }
 
     /**
+     * 判断key是否在entity里面
+     *
+     * @param $key
+     * @return bool
+     */
+    public final function key_exists($key)
+    {
+        return array_key_exists($key, $this->entity);
+    }
+
+    /**
      * 设置值
      *
      * @param $key
@@ -490,6 +501,8 @@ class BaseModel
         $insert_id = $this->mysql->insert($table, $array);
 
         if ($insert_id > 0) {
+            $key = $this->entity->PRIMARY_KEY;
+            $this->entity->$key = $insert_id;
             $this->entity->PRIMARY_VAL = $insert_id;
             $this->__save();
         }
@@ -531,6 +544,7 @@ class BaseModel
             foreach ($list as $k => $v) {
                 $this->redis->delete($k);
             }
+            $list = null;
             $this->redis->delete($hash_key);
         }
     }
@@ -540,7 +554,7 @@ class BaseModel
      * @return int
      * @throws \Exception\HTTPException
      */
-    private final function delete($where = 'where 1 = 1')
+    public final function delete($where = 'where 1 = 1')
     {
 
         $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
@@ -582,6 +596,23 @@ class BaseModel
         $node = $this->node($where, "count(*) as total", $this->cache);
 
         return $node['total'];
+    }
+
+    /**
+     * @param string $where
+     * @param $field
+     * @return mixed
+     * @throws \Exception\HTTPException
+     */
+    public final function sum($where = "where 1 = 1", $field)
+    {
+        $node = $this->node($where, "sum(`{$field}`) as count", $this->cache);
+
+        if (!isset($node['count'])) {
+            return 0;
+        }
+
+        return $node['count'];
     }
 
     /**

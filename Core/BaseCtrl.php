@@ -266,6 +266,10 @@ class BaseCtrl
     {
         if (is_numeric($key)) {
             $key--;
+        } else {
+            if (isset($this->param[$key]) && !is_string($this->param[$key])) {
+                throw Util::HTTPException($key, -1, '参数类型不正确');
+            }
         }
 
         $val = isset($this->param[$key]) ? trim($this->param[$key]) : false;
