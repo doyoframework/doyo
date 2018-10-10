@@ -122,12 +122,14 @@ class HTTPDispatcher
             }
         }
 
-        $fullname = $className . '.' . $methodName;
+        if (isset($GLOBALS['IGNORE'])) {
+            $fullname = $className . '.' . $methodName;
 
-        if (!class_exists($className) || in_array($fullname, $GLOBALS['IGNORE'])) {
-            header('HTTP/1.1 404 Not Found');
-            echo '404';
-            exit();
+            if (!class_exists($className) || in_array($fullname, $GLOBALS['IGNORE'])) {
+                header('HTTP/1.1 404 Not Found');
+                echo '404';
+                exit();
+            }
         }
 
         $GLOBALS['CTRL_NAME'] = strtolower($ctrlName);

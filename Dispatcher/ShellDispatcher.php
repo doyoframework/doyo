@@ -10,16 +10,16 @@ class ShellDispatcher
     /**
      * 分发器
      *
-     * @throws \Exception\HTTPException
+     * @param string $_ctrlPath
      */
-    public function dispatch()
+    public function dispatch($_ctrlPath = 'Ctrl')
     {
 
         if ((isset($_SERVER["argv"]) && count($_SERVER['argv']) > 1)) {
             $action = $_SERVER['argv'][1];
 
             if (preg_match('/^([a-z_]+)\.([a-z_]+)$/i', $action, $items)) {
-                $ctrlName = $items[1];
+                $ctrlName = $_ctrlPath . '\\' . $items[1];
                 $methodName = $items[2];
             } else {
                 echo 'Error Commend.';
@@ -27,7 +27,7 @@ class ShellDispatcher
                 exit();
             }
 
-            $ctrl = Util::loadCtrl($ctrlName);
+            $ctrl = Util::loadCls($ctrlName);
 
             $params = array();
             if (count($_SERVER['argv']) >= 3) {

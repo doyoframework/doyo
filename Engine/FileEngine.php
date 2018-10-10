@@ -403,11 +403,12 @@ class FileEngine
      * @param $sort
      * @param $part
      * @param $type
+     * @param $is_data
      * @return array
      * @throws \Exception\HTTPException
      * @throws \OSS\Core\OssException
      */
-    public function resave($filepath, $index, $sort, $part, $type)
+    public function resave($filepath, $index, $sort, $part, $type, $is_data = false)
     {
 
         $path = $this->set_file_path($index, $sort, $part, $type);
@@ -419,16 +420,27 @@ class FileEngine
 
             if (strtolower(FILE_SERVER_HOST) == 'alioss') {
 
+                if ($is_data) {
+                    $path = '/tmp/' . uniqid();
+                    Util::write($path, $filepath);
+                } else {
+                    $path = $filepath;
+                }
+
                 $alioss = Util::loadOss();
                 $file = array();
                 $file['type'] = $type;
-                $file['tmp_name'] = $filepath;
+                $file['tmp_name'] = $path;
                 $alioss->upload(OSS_BUCKET, $path, $file);
 
             } else {
 
-                // 将文件base64编码
-                $contents = base64_encode(file_get_contents($filepath));
+                if ($is_data) {
+                    // 将文件base64编码
+                    $contents = base64_encode($filepath);
+                } else {
+                    $contents = base64_encode(file_get_contents($filepath));
+                }
 
                 $args = array(
                     $path,
@@ -448,8 +460,13 @@ class FileEngine
 
             $npath = $path['path'] . $path['name'];
 
-            // 保存写入文件
-            file_put_contents($npath, file_get_contents($filepath));
+            if ($is_data) {
+                // 保存写入文件
+                file_put_contents($npath, $filepath);
+            } else {
+                // 保存写入文件
+                file_put_contents($npath, file_get_contents($filepath));
+            }
 
         }
 

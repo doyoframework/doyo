@@ -21,11 +21,7 @@ class SocketDispatcher
     public function dispatch(&$svr, $fd, $op, $param = array())
     {
 
-        echo "dispatch fd {$fd} ";
-
         if (isset($GLOBALS['ROUTE'][$op])) {
-
-            echo "op {$op}\n";
 
             $route = explode('.', $GLOBALS['ROUTE'][$op]);
 
@@ -48,6 +44,7 @@ class SocketDispatcher
             if (is_array($ret)) {
                 $ctrl->send($op, $ret);
             }
+
         } else {
             echo "error {$op}\n";
         }

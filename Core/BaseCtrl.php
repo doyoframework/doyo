@@ -325,6 +325,10 @@ class BaseCtrl
                 }
 
                 if (!is_array($_val) || count($_val) == 1) {
+                    $_val = explode('_', $val);
+                }
+
+                if (!is_array($_val) || count($_val) == 1) {
                     $_val = explode('-', $val);
                 }
             }
@@ -378,8 +382,13 @@ class BaseCtrl
                 }
 
                 if (!is_array($_val) || count($_val) == 1) {
+                    $_val = explode('_', $val);
+                }
+                
+                if (!is_array($_val) || count($_val) == 1) {
                     $_val = explode('-', $val);
                 }
+
             }
 
             if (!is_array($_val)) {
@@ -606,7 +615,7 @@ class BaseCtrl
     public final function display_json()
     {
 
-        //header('Content-Type: text/json; charset=' . CHARSET);
+        header('Content-Type: text/json; charset=' . CHARSET);
         Context::HttpDispatcher()->model = 'JSON';
 
     }

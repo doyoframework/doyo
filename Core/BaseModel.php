@@ -521,7 +521,7 @@ class BaseModel
      * @return int
      * @throws \Exception\HTTPException
      */
-    private final function update($where, $array)
+    public final function update($where, $array)
     {
         $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
