@@ -156,7 +156,7 @@ class BaseCtrl
             $key--;
         }
 
-        $val = isset($this->param[$key]) ? floatval($this->param[$key]) : false;
+        $val = isset($this->param[$key]) ? $this->param[$key] : false;
 
         if ($notEmpty && $val === false) {
             $msg = $msg != '' ? $msg : $key . ' empty';
@@ -312,7 +312,7 @@ class BaseCtrl
             throw Util::HTTPException($key . ' empty');
         }
 
-        if ($val !== false) {
+        if ($val) {
 
             $_val = $val;
 
@@ -342,6 +342,9 @@ class BaseCtrl
             if ($abs) {
                 $val = array_map('abs', $val);
             }
+
+        } else {
+            $val = [];
         }
 
         return $val;
@@ -356,7 +359,7 @@ class BaseCtrl
      * @return array|mixed|string
      * @throws \Exception\HTTPException
      */
-    protected final function getStrings($key, $notEmpty = false)
+    protected final function getStrings($key, $notEmpty = false, $msg = '')
     {
 
         if (is_numeric($key)) {
@@ -366,10 +369,14 @@ class BaseCtrl
         $val = isset($this->param[$key]) ? $this->param[$key] : false;
 
         if ($notEmpty && $val === false) {
-            throw Util::HTTPException($key . ' empty');
+            if ($msg) {
+                throw Util::HTTPException($msg);
+            } else {
+                throw Util::HTTPException($key . ' empty');
+            }
         }
 
-        if ($val != '') {
+        if ($val) {
 
             $_val = $val;
 
@@ -384,7 +391,7 @@ class BaseCtrl
                 if (!is_array($_val) || count($_val) == 1) {
                     $_val = explode('_', $val);
                 }
-                
+
                 if (!is_array($_val) || count($_val) == 1) {
                     $_val = explode('-', $val);
                 }
@@ -406,6 +413,9 @@ class BaseCtrl
                     $val[$k] = $v;
                 }
             }
+
+        } else {
+            $val = [];
         }
 
         return $val;
