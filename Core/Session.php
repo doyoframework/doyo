@@ -51,4 +51,9 @@ class Session
 
     }
 
+    public static function write_close()
+    {
+        session_write_close();
+    }
+
 }

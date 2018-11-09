@@ -347,6 +347,13 @@ class RedisEngine
 
     }
 
+    public function brpop($key, $timeout = 25)
+    {
+
+        return $this->redis->brPop($key, $timeout);
+
+    }
+
     /**
      * 清空当前数据库
      *

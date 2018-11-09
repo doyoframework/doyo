@@ -626,7 +626,26 @@ class Util
 
         $data = json_encode($data, JSON_UNESCAPED_UNICODE);
 
-        $crontab->lpush('async', $data);
+        $crontab->lpush(strtoupper(SERVER_KEY) . '_ASYNC', $data);
+    }
+
+    /**
+     * @param $op
+     * @param $param
+     * @throws HTTPException
+     */
+    public static function queue($op, $param)
+    {
+        $crontab = Util::loadRedis('crontab');
+
+        //向Redis队列增加一条数据
+        $data = array();
+        $data['op'] = $op;
+        $data['param'] = $param;
+
+        $data = json_encode($data, JSON_UNESCAPED_UNICODE);
+
+        $crontab->lpush(strtoupper(SERVER_KEY) . '_QUEUE', $data);
     }
 
     /**

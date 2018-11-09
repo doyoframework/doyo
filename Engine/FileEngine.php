@@ -123,6 +123,10 @@ class FileEngine
                 $stype = 'wav';
                 break;
 
+            case 'csv' :
+                $stype = 'csv';
+                break;
+
             default :
                 return array(
                     'code' => -2,
@@ -421,16 +425,17 @@ class FileEngine
             if (strtolower(FILE_SERVER_HOST) == 'alioss') {
 
                 if ($is_data) {
-                    $path = '/tmp/' . uniqid();
-                    Util::write($path, $filepath);
+                    $data = '/tmp/' . uniqid();
+                    Util::write($data, $filepath);
                 } else {
-                    $path = $filepath;
+                    $data = $filepath;
                 }
 
                 $alioss = Util::loadOss();
+
                 $file = array();
                 $file['type'] = $type;
-                $file['tmp_name'] = $path;
+                $file['tmp_name'] = $data;
                 $alioss->upload(OSS_BUCKET, $path, $file);
 
             } else {

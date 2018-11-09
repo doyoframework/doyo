@@ -98,7 +98,19 @@ class HTTPDispatcher
             }
         }
 
-        $className = $this->ctrlPath . '\\' . $ctrlName;
+
+        $ctrls = explode('.', $ctrlName);
+
+        $packet = '';
+        foreach ($ctrls as $k => $v) {
+            $v = strtolower($v);
+            if ($k == count($ctrls) - 1) {
+                $v = ucfirst(strtolower($v));
+            }
+            $packet .= '\\' . $v;
+        }
+
+        $className = $this->ctrlPath . $packet;
 
         if ($this->ctrlPath != 'Ctrl') {
             if (!file_exists(APP_PATH . '/' . $this->ctrlPath . '/' . $ctrlName . '.php')) {
@@ -122,12 +134,18 @@ class HTTPDispatcher
             }
         }
 
+
+        if (!class_exists($className)) {
+            header('HTTP/1.1 404 Not Found');
+            echo '404';
+            exit();
+        }
+
         if (isset($GLOBALS['IGNORE'])) {
             $fullname = $className . '.' . $methodName;
-
-            if (!class_exists($className) || in_array($fullname, $GLOBALS['IGNORE'])) {
+            if (in_array($fullname, $GLOBALS['IGNORE'])) {
                 header('HTTP/1.1 404 Not Found');
-                echo '404';
+                echo 'ignore';
                 exit();
             }
         }
