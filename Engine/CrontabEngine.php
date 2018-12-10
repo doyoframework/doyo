@@ -27,15 +27,56 @@ class CrontabEngine
     }
 
     /**
+     * @param $member
+     * @param $op
+     * @param $param
+     * @param $expire
+     * @throws \Exception\HTTPException
+     */
+    public function exec($member, $op, $param, $expire)
+    {
+        if (!is_array($param)) {
+            throw Util::HTTPException('param not array');
+        }
+
+        $data = array();
+        $data['op'] = $op;
+        $data['param'] = $param;
+        $data['CREATE'] = time();
+        $data['EXPIRE'] = $expire;
+
+        $members = $this->handle->get($this->tags);
+
+        $members = json_decode($members, true);
+
+        if (!in_array($member, $members)) {
+            $members[] = $member;
+        }
+
+        $this->handle->set($this->tags, json_encode($members));
+
+        $key = $this->tags . '_' . $member;
+
+        $this->handle->set($key, json_encode($data, JSON_UNESCAPED_UNICODE));
+
+    }
+
+    /**
      * 任务列表
      *
      * @return array
      */
     public function listed()
     {
-        $members = $this->handle->setMembers($this->tags);
+        $members = $this->handle->get($this->tags);
+
+        $members = json_decode($members, true);
 
         $data = array();
+
+        if (!$members) {
+            return $data;
+        }
 
         foreach ($members as $member) {
             $key = $this->tags . '_' . $member;
@@ -55,36 +96,6 @@ class CrontabEngine
         return $data;
     }
 
-    /**
-     * @param $member
-     * @param $op
-     * @param $param
-     * @param $expire
-     * @throws \Exception\HTTPException
-     */
-    public function exec($member, $op, $param, $expire)
-    {
-
-        if (!is_array($param)) {
-            throw Util::HTTPException('param not array');
-        }
-
-        $data = array();
-        $data['op'] = $op;
-        $data['param'] = $param;
-        $data['CREATE'] = time();
-        $data['EXPIRE'] = $expire;
-
-        $exists = $this->handle->setIsMember($this->tags, $member);
-
-        if (!$exists) {
-            $this->handle->setAdd($this->tags, $member);
-        }
-
-        $key = $this->tags . '_' . $member;
-
-        $this->handle->set($key, json_encode($data, JSON_UNESCAPED_UNICODE));
-    }
 
     /**
      * 删除一个定时任务
@@ -93,16 +104,19 @@ class CrontabEngine
      */
     public function del($member)
     {
-        $exists = $this->handle->setIsMember($this->tags, $member);
+        $members = $this->handle->get($this->tags);
 
-        if (!$exists) {
-            return;
+        $members = json_decode($members, true);
+
+        if ($members) {
+            if (in_array($member, $members)) {
+                $key = array_search($member, $members);
+                unset($members[$key]);
+                $this->handle->set($this->tags, json_encode($members));
+            }
         }
 
-        $this->handle->setRem($this->tags, $member);
-
         $key = $this->tags . '_' . $member;
-
         $this->handle->delete($key);
 
     }

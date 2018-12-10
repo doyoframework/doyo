@@ -62,7 +62,7 @@ class MakerEntity
             $file[] = '';
         }
 
-        $fields = $db->show_fields($name, 'COLUMN_COMMENT, DATA_TYPE, COLUMN_NAME');
+        $fields = $db->show_fields($name, 'COLUMN_COMMENT, DATA_TYPE, COLUMN_NAME, COLUMN_DEFAULT');
         foreach ($fields as $field) {
 
             $file[] = '	/**';
@@ -74,15 +74,36 @@ class MakerEntity
 
             if (in_array($var, array(
                 'varchar',
-                'text'
+                'text',
+                'char',
+                'longtext'
             ))) {
                 $var = 'string';
             }
 
+            if (in_array($var, array(
+                'bigint',
+                'tinyint',
+            ))) {
+                $var = 'int';
+            }
+
             $file[] = '	 * @var ' . $var;
 
+            if ($key && $field['COLUMN_NAME'] == $key) {
+                $default = " = 0";
+            } else {
+                if ($var != 'string') {
+                    $default = " = " . $field['COLUMN_DEFAULT'];
+                } else {
+                    $default = " = '" . $field['COLUMN_DEFAULT'] . "'";
+                }
+            }
+
             $file[] = '	 */';
-            $file[] = '	var $' . $field['COLUMN_NAME'] . ';';
+            $file[] = '	var $' . $field['COLUMN_NAME'] . $default . ';';
+            $file[] = '	';
+            $file[] = '	var $__' . $field['COLUMN_NAME'] . '__type = \'' . $var . '\';';
             $file[] = '	';
         }
 

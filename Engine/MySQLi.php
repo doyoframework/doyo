@@ -103,7 +103,7 @@ class MySQLi
 
         $this->_sql = $sql;
 
-        file_put_contents(SQL_LOG_PATH, $sql . "\n", FILE_APPEND);
+        Util::logs($sql, SQL_LOG_PATH);
 
         $res = $this->mysql->query($sql);
 
@@ -112,6 +112,7 @@ class MySQLi
         }
 
         if ($this->mysql->errno) {
+            Util::logs($sql, '/tmp/sql.err.log');
             throw Util::HTTPException("网络错误，请联系管理员。", -1, [$this->mysql->error, $this->_sql]);
         }
 

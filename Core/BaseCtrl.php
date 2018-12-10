@@ -167,6 +167,10 @@ class BaseCtrl
             $val = 0;
         }
 
+        if ($val == '') {
+            $val = 0;
+        }
+
         if ($val == 0 && $msg != '') {
             throw Util::HTTPException($msg);
         }

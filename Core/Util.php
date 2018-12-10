@@ -23,10 +23,17 @@ class Util
     public static function loadCls($class_name, $tags = '', $param = array())
     {
         if (empty($param)) {
+
+            if ($tags == '' || !$tags) {
+                return new $class_name();
+            }
+
             if (!isset(self::$instances[$class_name . '_' . $tags])) {
                 self::$instances[$class_name . '_' . $tags] = new $class_name();
             }
+
             return self::$instances[$class_name . '_' . $tags];
+
         } else {
 
         }
@@ -87,14 +94,15 @@ class Util
 
     /**
      * 加载Ctrl类
-     *
+     * 
      * @param $clsName
-     * @return BaseCtrl|object
+     * @param string $namespace
+     * @return mixed
      */
-    public static function loadCtrl($clsName)
+    public static function loadCtrl($clsName, $namespace = 'Ctrl')
     {
 
-        return Util::loadCls("Ctrl\\{$clsName}");
+        return Util::loadCls($namespace . "\\{$clsName}");
 
     }
 
@@ -148,7 +156,7 @@ class Util
      * @param string $config
      * @return \Engine\CrontabEngine
      */
-    public static function loadCrontab($tags = 'CRONTAB', $config = 'crontab')
+    public static function loadCrontab($tags = '__CRONTAB__', $config = 'session')
     {
 
         if (!isset(self::$crontab[$tags])) {
@@ -364,20 +372,21 @@ class Util
      * 按权重获取物品
      *
      * @param $data
-     * @return mixed
+     * @param $odds
+     * @return string
      */
-    public static function randItem($data)
+    public static function randItem($data, $odds)
     {
 
         $num = 0;
         foreach ($data as $item) {
-            $num += $item[2];
+            $num += $item[$odds];
         }
 
         $rd = rand(1, $num);
         $rv = 0;
         foreach ($data as $item) {
-            $rv += $item[2];
+            $rv += $item[$odds];
             if ($rd <= $rv) {
                 return $item;
             }
@@ -784,13 +793,37 @@ class Util
         return (json_last_error() == JSON_ERROR_NONE);
     }
 
+    public static function time($day, $format = 'Y-m-d')
+    {
+        return strtotime(date($format, time() + $day * 86400));
+    }
+
     public static function logs($content, $file = false)
     {
         if (!$file) {
             $file = '/tmp/doyo.' . date('Y-m-d') . '.log';
         }
-
         file_put_contents($file, '[' . date('Y-m-d H:i:s') . ']' . $content . "\n", FILE_APPEND);
+    }
+
+    public static function week($week)
+    {
+        switch ($week) {
+            case 1 :
+                return '一';
+            case 2 :
+                return '二';
+            case 3 :
+                return '三';
+            case 4 :
+                return '四';
+            case 5 :
+                return '五';
+            case 6 :
+                return '六';
+            case 7 :
+                return '日';
+        }
     }
 }
 

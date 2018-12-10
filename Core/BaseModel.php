@@ -120,14 +120,14 @@ class BaseModel
         $entity = APP_PATH . '/Entity/' . $this->ENTITY_NAME . '.php';
 
         if (file_exists($entity)) {
-            $this->entity = Util::loadCls('Entity\\' . $this->ENTITY_NAME, $primary_val);
+            $this->entity = Util::loadCls('Entity\\' . $this->ENTITY_NAME, $this->PRIMARY_VAL);
 
             $this->mysql = Util::loadCls('Engine\MySQLi');
 
             $this->mysql->connect($this->entity->DB_CONFIG);
 
-            if ($primary_val) {
-                $this->read($primary_val, $this->cache);
+            if ($this->PRIMARY_VAL) {
+                $this->read($this->PRIMARY_VAL, $this->cache);
             }
         }
 
@@ -145,7 +145,6 @@ class BaseModel
      */
     public final function __get($key)
     {
-
         // 必须是用array_key_exists，因为这个变量肯定没有被赋值，只是判断是否有这个变量
         if (array_key_exists($key, $this->entity)) {
 
@@ -157,7 +156,15 @@ class BaseModel
         } else {
             throw Util::HTTPException('not get key: ' . $key);
         }
+    }
 
+
+    public final function reset()
+    {
+        $this->__setter = [];
+        $this->__result = [];
+        $this->__result_clone = [];
+        $this->entity = Util::loadCls('Entity\\' . $this->ENTITY_NAME);
     }
 
     /**
@@ -176,17 +183,53 @@ class BaseModel
      *
      * @param $key
      * @param $val
+     * @throws \Exception\HTTPException
      */
     public final function __set($key, $val)
     {
 
         // 必须是用array_key_exists，因为这个变量有可能没有被赋值，只是判断是否有这个变量
         if (array_key_exists($key, $this->entity)) {
+            $type = '__' . $key . '__type';
+
+            $ret = settype($val, $this->entity->$type);
+
+            if (!$ret) {
+                throw Util::HTTPException('set type error: ' . $this->entity->$type);
+            }
+
             $this->__setter[$key] = $val;
             $this->entity->$key = $val;
         }
 
     }
+
+    /**
+     * 给实例赋值
+     *
+     * @param $data
+     * @throws \Exception\HTTPException
+     */
+    public final function __setData($data)
+    {
+
+        foreach ($this->entity as $key => $value) {
+            if (array_key_exists($key, $data)) {
+                $type = '__' . $key . '__type';
+
+                $ret = settype($data[$key], $this->entity->$type);
+
+                if (!$ret) {
+                    throw Util::HTTPException('set type error: ' . $this->entity->$type);
+                }
+
+                $this->__setter[$key] = $data[$key];
+                $this->entity->$key = $data[$key];
+            }
+        }
+
+    }
+
 
     /**
      * 返回实例
@@ -231,6 +274,7 @@ class BaseModel
         return $node;
 
     }
+
 
     /**
      * 根据索引删除一条数据
@@ -456,6 +500,30 @@ class BaseModel
     public final function query($sql, $mode = MYSQL_QUERY_FETCH)
     {
 
+        $sql = trim($sql);
+
+        $operate = substr($sql, 0, 6);
+
+        if (strtolower($operate) != 'select') {
+            throw Util::HTTPException('only use select statement.');
+        }
+
+        if (stristr($sql, 'delete ')) {
+            throw Util::HTTPException('don`t use delete statement.');
+        }
+
+        if (stristr($sql, 'update ')) {
+            throw Util::HTTPException('don`t use update statement.');
+        }
+
+        if (stristr($sql, 'drop ')) {
+            throw Util::HTTPException('don`t use drop statement.');
+        }
+
+        if (stristr($sql, 'replace ')) {
+            throw Util::HTTPException('don`t use replace statement.');
+        }
+
         $res = $this->mysql->query($sql);
 
         if ($mode == MYSQL_QUERY_FETCH) {
@@ -660,8 +728,13 @@ class BaseModel
             }
 
             $this->exists = true;
+
         } else {
+
             $this->exists = false;
+
+            $this->reset();
+
         }
 
         return $node;

@@ -721,5 +721,63 @@ class WxService
 
     }
 
+    /**
+     * 自定义菜单查询接口
+     *
+     * @return bool|mixed
+     * @throws \Exception\HTTPException
+     */
+    public function get_menu()
+    {
+
+        $url = 'https://api.weixin.qq.com/cgi-bin/menu/get?access_token=' . $this->access_token();
+
+        $content = Util::curl_request($url, 'GET');
+
+        $content = json_decode($content, true);
+
+        return $content;
+
+    }
+
+    /**
+     * 自定义菜单创建接口
+     *
+     * @param $data
+     * @return bool|mixed
+     * @throws \Exception\HTTPException
+     */
+    public function create_menu($data)
+    {
+
+        $url = 'https://api.weixin.qq.com/cgi-bin/menu/create?access_token=' . $this->access_token();
+
+        $content = Util::curl_request($url, 'POST', $data);
+
+        $content = json_decode($content, true);
+
+        return $content;
+
+    }
+
+    /**
+     * 自定义菜单删除接口
+     *
+     * @return bool|mixed
+     * @throws \Exception\HTTPException
+     */
+    public function delete_menu()
+    {
+
+        $url = 'https://api.weixin.qq.com/cgi-bin/menu/delete?access_token=' . $this->access_token();
+
+        $content = Util::curl_request($url, 'GET');
+
+        $content = json_decode($content, true);
+
+        return $content;
+
+    }
+
 
 }
