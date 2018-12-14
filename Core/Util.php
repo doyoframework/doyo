@@ -18,13 +18,14 @@ class Util
      * @param $class_name
      * @param string $tags
      * @param array $param
+     * @param bool $single
      * @return mixed
      */
-    public static function loadCls($class_name, $tags = '', $param = array())
+    public static function loadCls($class_name, $tags = '', $param = array(), $single = true)
     {
         if (empty($param)) {
 
-            if ($tags == '' || !$tags) {
+            if (!$single) {
                 return new $class_name();
             }
 
@@ -94,15 +95,14 @@ class Util
 
     /**
      * 加载Ctrl类
-     * 
+     *
      * @param $clsName
-     * @param string $namespace
-     * @return mixed
+     * @return BaseCtrl
      */
-    public static function loadCtrl($clsName, $namespace = 'Ctrl')
+    public static function loadCtrl($clsName)
     {
 
-        return Util::loadCls($namespace . "\\{$clsName}");
+        return Util::loadCls($clsName);
 
     }
 
@@ -317,50 +317,27 @@ class Util
     }
 
     /**
-     * 按权重获取类型
-     *
-     * @param $data
-     * @return int|string
-     */
-    private static function rand($data)
-    {
-
-        $rd = rand(1, array_sum($data));
-        $rv = 0;
-
-        foreach ($data as $type => $odds) {
-            $rv += $odds;
-
-            if ($rd <= $rv) {
-                return $type;
-            }
-        }
-
-        return 0;
-
-    }
-
-    /**
      * 按权重获取多个
      *
      * @param $data
+     * @param $odds
      * @param int $num
      * @return array
      */
-    public static function rands($data, $num = 1)
+    public static function randItem($data, $odds, $num = 1)
     {
 
         $items = array();
 
         while ($num) {
-            $item = self::rand($data);
+            $item = self::randItems($data, $odds);
 
-            if ($item)
+            if ($item) {
                 $items[] = $item;
-            else
+            } else {
                 break;
+            }
 
-            unset($data[$item]);
             $num--;
         }
 
@@ -373,9 +350,9 @@ class Util
      *
      * @param $data
      * @param $odds
-     * @return string
+     * @return array
      */
-    public static function randItem($data, $odds)
+    private static function randItems(&$data, $odds)
     {
 
         $num = 0;
@@ -385,14 +362,20 @@ class Util
 
         $rd = rand(1, $num);
         $rv = 0;
-        foreach ($data as $item) {
+
+        foreach ($data as $k => $item) {
             $rv += $item[$odds];
+
             if ($rd <= $rv) {
+
+                unset($data[$k]);
+
                 return $item;
             }
+
         }
 
-        return '';
+        return [];
     }
 
     /**

@@ -41,7 +41,7 @@ class PHPExcel
 
             $objReader = PHPExcel_IOFactory::createReader('CSV')
                 ->setDelimiter(',')
-                ->setInputEncoding('GBK')
+                ->setInputEncoding('UTF-8')
                 ->setEnclosure('"')
                 ->setSheetIndex(0);
 

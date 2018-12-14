@@ -11,6 +11,7 @@ class ShellDispatcher
      * 分发器
      *
      * @param string $_ctrlPath
+     * @throws \Exception\HTTPException
      */
     public function dispatch($_ctrlPath = 'Ctrl')
     {
@@ -27,7 +28,7 @@ class ShellDispatcher
                 exit();
             }
 
-            $ctrl = Util::loadCls($ctrlName);
+            $ctrl = Util::loadCtrl($ctrlName);
 
             $params = array();
             if (count($_SERVER['argv']) >= 3) {

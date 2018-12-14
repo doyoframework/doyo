@@ -25,7 +25,7 @@ class SocketDispatcher
 
             $route = explode('.', $GLOBALS['ROUTE'][$op]);
 
-            $ctrl = Util::loadCtrl($route[0]);
+            $ctrl = Util::loadCtrl("Ctrl\\{$route[0]}");
 
             if (!empty($param)) {
                 $ctrl->setParams($param);

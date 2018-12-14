@@ -159,25 +159,6 @@ class BaseModel
     }
 
 
-    public final function reset()
-    {
-        $this->__setter = [];
-        $this->__result = [];
-        $this->__result_clone = [];
-        $this->entity = Util::loadCls('Entity\\' . $this->ENTITY_NAME);
-    }
-
-    /**
-     * 判断key是否在entity里面
-     *
-     * @param $key
-     * @return bool
-     */
-    public final function key_exists($key)
-    {
-        return array_key_exists($key, $this->entity);
-    }
-
     /**
      * 设置值
      *
@@ -241,12 +222,42 @@ class BaseModel
 
         foreach ($this->entity as $key => $value) {
             if (!in_array($key, ['DB_CONFIG', 'TABLE_PREFIX', 'PRIMARY_KEY', 'PRIMARY_VAL'])) {
+                if ($key[0] == '_' && $key[1] == '_') {
+                    continue;
+                }
+                $type = '__' . $key . '__type';
+
+                settype($value, $this->entity->$type);
+
                 $data[$key] = $value;
             }
         }
 
         return $data;
 
+    }
+
+    /**
+     * 判断key是否在entity里面
+     *
+     * @param $key
+     * @return bool
+     */
+    public final function key_exists($key)
+    {
+        return array_key_exists($key, $this->entity);
+    }
+
+    /**
+     * 重置Entity
+     *
+     */
+    public final function reset()
+    {
+        $this->__setter = [];
+        $this->__result = [];
+        $this->__result_clone = [];
+        $this->entity = Util::loadCls('Entity\\' . $this->ENTITY_NAME, '', [], false);
     }
 
     /**
@@ -301,9 +312,7 @@ class BaseModel
             }
         }
 
-        $this->entity = Util::loadCls('Entity\\' . $this->ENTITY_NAME);
-
-        $this->__setter = array();
+        $this->reset();
 
         return $status;
 
@@ -591,6 +600,10 @@ class BaseModel
      */
     public final function update($where, $array)
     {
+        if (is_array($where)) {
+            $where = implode(' ', $where);
+        }
+        
         $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
         $ret = $this->mysql->update($table, $array, $where);
@@ -625,6 +638,10 @@ class BaseModel
     public final function delete($where = 'where 1 = 1')
     {
 
+        if (is_array($where)) {
+            $where = implode(' ', $where);
+        }
+
         $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
         $ret = $this->mysql->delete($table, $where);
@@ -645,6 +662,10 @@ class BaseModel
     public final function field($where, $field, $expires = 0)
     {
 
+        if (is_array($where)) {
+            $where = implode(' ', $where);
+        }
+
         $node = $this->node($where, $field, $expires);
 
         if ($node) {
@@ -661,6 +682,10 @@ class BaseModel
      */
     public final function count($where = "where 1 = 1")
     {
+        if (is_array($where)) {
+            $where = implode(' ', $where);
+        }
+
         $node = $this->node($where, "count(*) as total", $this->cache);
 
         return $node['total'];
@@ -674,6 +699,10 @@ class BaseModel
      */
     public final function sum($where = "where 1 = 1", $field)
     {
+        if (is_array($where)) {
+            $where = implode(' ', $where);
+        }
+
         $node = $this->node($where, "sum(`{$field}`) as count", $this->cache);
 
         if (!isset($node['count'])) {
@@ -692,6 +721,10 @@ class BaseModel
      */
     public final function node($where, $field = '*', $expires = 0)
     {
+
+        if (is_array($where)) {
+            $where = implode(' ', $where);
+        }
 
         $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
@@ -753,6 +786,10 @@ class BaseModel
      */
     public final function publish($where, $field, $limit, $page, $offset = false, $order = '')
     {
+
+        if (is_array($where)) {
+            $where = implode(' ', $where);
+        }
 
         $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
@@ -857,6 +894,10 @@ class BaseModel
     public final function select($where = 'where 1 = 1', $field = '*', $limit = false, $page = false, $offset = 0)
     {
 
+        if (is_array($where)) {
+            $where = implode(' ', $where);
+        }
+
         $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
         $cache_key = md5($table . $where . $field . $limit . $page . $offset);
@@ -903,9 +944,13 @@ class BaseModel
     public final function right($tab, $on, $where = false, $field = '*', $limit = false, $page = false, $offset = 0)
     {
 
+        if (is_array($where)) {
+            $where = implode(' ', $where);
+        }
+
         $tableA = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
-        $entry = Util::loadCls('Entity\\' . ucfirst($tab), 0);
+        $entry = Util::loadCls('Entity\\' . ucfirst($tab));
 
         if ($entry->DB_CONFIG != $this->entity->DB_CONFIG) {
             throw Util::HTTPException('right database not same.');
@@ -941,9 +986,13 @@ class BaseModel
     public final function left($tab, $on, $where = false, $field = '*', $limit = false, $page = false, $offset = 0)
     {
 
+        if (is_array($where)) {
+            $where = implode(' ', $where);
+        }
+
         $tableA = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
-        $entry = Util::loadCls('Entity\\' . ucfirst($tab), 0);
+        $entry = Util::loadCls('Entity\\' . ucfirst($tab));
 
         if ($entry->DB_CONFIG != $this->entity->DB_CONFIG) {
             throw Util::HTTPException('left database not same.');
@@ -980,9 +1029,13 @@ class BaseModel
     public final function inner($tab, $on, $where = false, $field = '*', $limit = false, $page = false, $offset = 0)
     {
 
+        if (is_array($where)) {
+            $where = implode(' ', $where);
+        }
+
         $tableA = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
-        $entry = Util::loadCls('Entity\\' . ucfirst($tab), 0);
+        $entry = Util::loadCls('Entity\\' . ucfirst($tab));
 
         if ($entry->DB_CONFIG != $this->entity->DB_CONFIG) {
             throw Util::HTTPException('inner database not same.');

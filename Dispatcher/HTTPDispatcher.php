@@ -153,7 +153,7 @@ class HTTPDispatcher
         $GLOBALS['CTRL_NAME'] = strtolower($ctrlName);
         $GLOBALS['METHOD_NAME'] = strtolower($methodName);
 
-        $ctrl = Util::loadCls($className);
+        $ctrl = Util::loadCtrl($className);
 
         if (method_exists($ctrl, $methodName)) {
             $this->params = array_slice($pargs, $slice + 1);
@@ -241,7 +241,7 @@ class HTTPDispatcher
 
         $className = $this->ctrlPath . '\\' . $ctrlName;
 
-        $ctrl = Util::loadCls($className);
+        $ctrl = Util::loadCtrl($className);
 
         if ($ctrl instanceof BaseCtrl) {
             $ctrl->initSmarty($this->template, $this->compile);
@@ -260,6 +260,7 @@ class HTTPDispatcher
      *
      * @param $params
      * @return mixed
+     * @throws \Exception\HTTPException
      */
     public function data($params)
     {
@@ -268,7 +269,7 @@ class HTTPDispatcher
 
         $className = $this->ctrlPath . '\\' . $ctrlName;
 
-        $ctrl = Util::loadCls($className);
+        $ctrl = Util::loadCtrl($className);
 
         $ctrl->setParams($params);
 
