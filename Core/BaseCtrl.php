@@ -2,7 +2,6 @@
 
 namespace Core;
 
-use Common\Model;
 use Dispatcher\SocketDispatcher;
 
 class BaseCtrl

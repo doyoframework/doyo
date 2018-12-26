@@ -603,7 +603,7 @@ class BaseModel
         if (is_array($where)) {
             $where = implode(' ', $where);
         }
-        
+
         $table = strtolower($this->entity->TABLE_PREFIX . $this->ENTITY_NAME);
 
         $ret = $this->mysql->update($table, $array, $where);

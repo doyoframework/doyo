@@ -110,7 +110,15 @@ class FileEngine
             case 'mp4' :
                 $stype = 'mp4';
                 break;
-
+            case 'avi' :
+                $stype = 'avi';
+                break;
+            case 'mov' :
+                $stype = 'mov';
+                break;
+            case 'wmv' :
+                $stype = 'wmv';
+                break;
             case '3gp' :
                 $stype = '3gp';
                 break;
