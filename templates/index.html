@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>oegame</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/css/global.css" media="all">
+</head>
+
+<style>
+    html, body {
+        height: 100%;
+        background: #252526;
+        font-family: "Helvetica Neue", "Hiragino Sans GB", "Microsoft YaHei", "\9ED1\4F53", Arial, sans-serif;
+        color: #364049;
+    }
+
+    #main-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+    }
+</style>
+
+<body class="layui-layout-body">
+
+<script src="/layui/layui.js?v=<!--{VERSION}-->"></script>
+
+<div id="main-content">
+    <!--{inner action="index" method="page" template="$page"}-->
+</div>
+
+<script>
+    layui.config({
+        base: '/js',
+        post: {},
+        version: '<!--{VERSION}-->',
+    }).extend({
+        doyo: 'doyo'
+    });
+</script>
+
+</body>
+</html>

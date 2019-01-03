@@ -1,0 +1,4 @@
+<?php
+
+$GLOBALS['IGNORE'] = array(
+);
