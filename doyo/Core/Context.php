@@ -26,11 +26,6 @@ class Context
             require_once $common;
         }
 
-        $sdks = glob(CORE_PATH . '/Sdk/*.php');
-        foreach ($sdks as $sdk) {
-            require_once $sdk;
-        }
-
         date_default_timezone_set(TIMEZONE);
 
         header('Content-Type: text/html; charset=' . CHARSET);

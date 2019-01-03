@@ -53,7 +53,7 @@ class BaseCtrl
     public final function initSmarty($template = null, $compile = null)
     {
 
-        require_once(CORE_PATH . '/Engine/Smarty/libs/Smarty.class.php');
+        require_once(APP_PATH . '/Plugins/Smarty/libs/Smarty.class.php');
 
         $this->view = new \Smarty();
 

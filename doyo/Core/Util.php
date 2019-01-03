@@ -134,12 +134,12 @@ class Util
     /**
      * 加载短信发送类
      *
-     * @return \Sdk\Alioss|object
+     * @return \Alioss|object
      */
     public static function loadOss()
     {
 
-        return Util::loadCls("Sdk\Alioss");
+        return Util::loadCls("Alioss");
 
     }
 

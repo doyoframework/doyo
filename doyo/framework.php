@@ -9,7 +9,6 @@ use Core\Context;
  */
 function sys_autoload($class)
 {
-
     $basePath = str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
     $classFile = APP_PATH . DIRECTORY_SEPARATOR . $basePath;
 
@@ -17,26 +16,9 @@ function sys_autoload($class)
         $classFile = __DIR__ . DIRECTORY_SEPARATOR . $basePath;
     }
 
-    if (!file_exists($classFile)) {
-        $classFile = APP_PATH . '/Plugins/' . $basePath;
-    }
-
-    if (!file_exists($classFile)) {
-        $classFile = __DIR__ . DIRECTORY_SEPARATOR . 'Engine/Smarty/libs/sysplugins/' . $basePath;
-    }
-
-    if (!file_exists($classFile)) {
-        $classFile = __DIR__ . DIRECTORY_SEPARATOR . 'Engine/Smarty/libs/plugins/' . $basePath;
-    }
-
-    if (!file_exists($classFile)) {
-        $classFile = __DIR__ . DIRECTORY_SEPARATOR . 'Sdk/' . $basePath;
-    }
-
     if (file_exists($classFile)) {
-        require_once($classFile);
+        require_once $classFile;
     }
-
 }
 
 spl_autoload_register('sys_autoload');

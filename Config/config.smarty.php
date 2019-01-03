@@ -18,7 +18,7 @@ define('SMARTY_CONFIG_LOAD', 'configs/base.conf');
  *
  * @var string
  */
-define('SMARTY_TEMPLATE_DIR', 'webroot/templates');
+define('SMARTY_TEMPLATE_DIR', 'templates');
 
 /**
  * compile_dir

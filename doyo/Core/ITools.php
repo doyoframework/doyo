@@ -23,4 +23,3 @@ interface ITools {
     public static function paging($data, $url, $args = null);
 
 }
-?>
