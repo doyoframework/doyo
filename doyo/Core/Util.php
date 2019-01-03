@@ -147,10 +147,19 @@ class Util
      *
      * @return \Plugins\Mail|object
      */
-    public static function loadMail() {
+    public static function loadMail()
+    {
 
         return Util::loadCls("Plugins\Mail");
 
+    }
+
+    /**
+     * @return \Plugins\QRCode|object
+     */
+    public static function qrcode()
+    {
+        return Util::loadCls('Plugins\QRCode');
     }
 
     /**
@@ -768,13 +777,6 @@ class Util
         return $ary;
     }
 
-    /**
-     * @return \QRCode|object
-     */
-    public static function qrcode()
-    {
-        return Util::loadCls('Plugins\QRCode');
-    }
 
     /**
      * @param $string
