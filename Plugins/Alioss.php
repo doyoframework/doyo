@@ -1,4 +1,6 @@
 <?php
+namespace Plugins;
+
 use OSS\Core\OssException;
 use OSS\OssClient;
 
@@ -45,6 +47,7 @@ class Alioss
      * @param $bucket
      * @param $path
      * @param $file
+     * @return null
      * @throws OssException
      */
     public function upload($bucket, $path, $file)
@@ -66,15 +69,17 @@ class Alioss
 
         $options['Content-Type'] = $file['type'];
 
-        $this->ossClient->uploadFile($bucket, $name, $file['tmp_name'], $options);
+        $ret = $this->ossClient->uploadFile($bucket, $name, $file['tmp_name'], $options);
 
         @unlink($file['tmp_name']);
 
+        return $ret;
     }
 
     /**
      * @param $bucket
      * @param $path
+     * @return null
      */
     public function delete($bucket, $path)
     {
@@ -89,8 +94,9 @@ class Alioss
             $name = substr($name, 1);
         }
 
-        $this->ossClient->deleteObject($bucket, $name);
+        $ret = $this->ossClient->deleteObject($bucket, $name);
 
+        return $ret;
     }
 
 }

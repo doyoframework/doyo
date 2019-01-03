@@ -16,6 +16,10 @@ function sys_autoload($class)
         $classFile = __DIR__ . DIRECTORY_SEPARATOR . $basePath;
     }
 
+    if (!file_exists($classFile)) {
+        $classFile = APP_PATH . '/Plugins/' . $basePath;
+    }
+
     if (file_exists($classFile)) {
         require_once $classFile;
     }

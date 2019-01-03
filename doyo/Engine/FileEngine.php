@@ -415,7 +415,7 @@ class FileEngine
      * @param $sort
      * @param $part
      * @param $type
-     * @param $is_data
+     * @param bool $is_data
      * @return array
      * @throws \Exception\HTTPException
      * @throws \OSS\Core\OssException

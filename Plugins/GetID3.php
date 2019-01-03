@@ -1,4 +1,6 @@
 <?php
+namespace Plugins;
+
 class GetID3
 {
 

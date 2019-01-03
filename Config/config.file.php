@@ -10,7 +10,7 @@
  * localhost
  * xmlrpc
  */
-define('FILE_SERVER_HOST', 'localhost');
+define('FILE_SERVER_HOST', 'alioss');
 
 /**
  * 文件域名

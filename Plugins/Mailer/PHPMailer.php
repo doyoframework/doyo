@@ -1,12 +1,14 @@
 <?php
+namespace Mailer;
+
 use Core\Util;
 
 /**
- * PHPMailer - PHP email creation and transport class.
+ * Mailer - PHP email creation and transport class.
  * PHP Version 5
  *
- * @package PHPMailer
- * @link https://github.com/PHPMailer/PHPMailer/ The PHPMailer GitHub project
+ * @package Mailer
+ * @link https://github.com/PHPMailer/PHPMailer/ The Mailer GitHub project
  * @author Marcus Bointon (Synchro/coolbru) <phpmailer@synchromedia.co.uk>
  * @author Jim Jagielski (jimjag) <jimjag@gmail.com>
  * @author Andy Prevost (codeworxtech) <codeworxtech@users.sourceforge.net>
@@ -21,9 +23,9 @@ use Core\Util;
  */
 
 /**
- * PHPMailer - PHP email creation and transport class.
+ * Mailer - PHP email creation and transport class.
  *
- * @package PHPMailer
+ * @package Mailer
  * @author Marcus Bointon (Synchro/coolbru) <phpmailer@synchromedia.co.uk>
  * @author Jim Jagielski (jimjag) <jimjag@gmail.com>
  * @author Andy Prevost (codeworxtech) <codeworxtech@users.sourceforge.net>
@@ -32,7 +34,7 @@ use Core\Util;
 class PHPMailer {
 
     /**
-     * The PHPMailer Version number.
+     * The Mailer Version number.
      *
      * @var string
      */
@@ -201,7 +203,7 @@ class PHPMailer {
     public $UseSendmailOptions = true;
 
     /**
-     * Path to PHPMailer plugins.
+     * Path to Mailer plugins.
      * Useful if the SMTP class is not in the PHP include path.
      *
      * @var string
@@ -218,7 +220,7 @@ class PHPMailer {
 
     /**
      * The hostname to use in the Message-ID header and as default HELO string.
-     * If empty, PHPMailer attempts to find one with, in order,
+     * If empty, Mailer attempts to find one with, in order,
      * $_SERVER['SERVER_NAME'], gethostname(), php_uname('n'), or the value
      * 'localhost.localdomain'.
      *
@@ -265,7 +267,7 @@ class PHPMailer {
 
     /**
      * The SMTP HELO of the message.
-     * Default is $Hostname. If $Hostname is empty, PHPMailer attempts to find
+     * Default is $Hostname. If $Hostname is empty, Mailer attempts to find
      * one with the same method described above for $Hostname.
      *
      * @var string
@@ -496,7 +498,7 @@ class PHPMailer {
 
     /**
      * What to put in the X-Mailer header.
-     * Options: An empty string for PHPMailer default, whitespace for none, or a string to use
+     * Options: An empty string for Mailer default, whitespace for none, or a string to use
      *
      * @var string
      */
@@ -548,7 +550,7 @@ class PHPMailer {
      *
      * @var array
      * @access protected
-     * @see PHPMailer::$to @see PHPMailer::$cc @see PHPMailer::$bcc
+     * @see PHPMailer::$to @see Mailer::$cc @see Mailer::$bcc
      */
     protected $all_recipients = array ();
 
@@ -560,7 +562,7 @@ class PHPMailer {
      *
      * @var array
      * @access protected
-     * @see PHPMailer::$to @see PHPMailer::$cc @see PHPMailer::$bcc
+     * @see PHPMailer::$to @see Mailer::$cc @see Mailer::$bcc
      * @see PHPMailer::$all_recipients
      */
     protected $RecipientsQueue = array ();
@@ -941,8 +943,8 @@ class PHPMailer {
 
     /**
      * Add an address to one of the recipient arrays or to the ReplyTo array.
-     * Because PHPMailer
-     * can't validate addresses with an IDN without knowing the PHPMailer::$CharSet (that can still
+     * Because Mailer
+     * can't validate addresses with an IDN without knowing the Mailer::$CharSet (that can still
      * be modified after calling this function), addition of such addresses is delayed until send().
      * Addresses that have been added already return false, but do not throw exceptions.
      *
@@ -974,7 +976,7 @@ class PHPMailer {
             $address, 
             $name 
         );
-        // Enqueue addresses with IDN until we know the PHPMailer::$CharSet.
+        // Enqueue addresses with IDN until we know the Mailer::$CharSet.
         if ($this->has8bitChars(substr($address, ++$pos)) and $this->idnSupported()) {
             if ($kind != 'Reply-To') {
                 if (!array_key_exists($address, $this->RecipientsQueue)) {
@@ -1257,7 +1259,7 @@ class PHPMailer {
 
     /**
      * Converts IDN in given email address to its ASCII form, also known as punycode, if possible.
-     * Important: Address must be passed in same encoding as currently set in PHPMailer::$CharSet.
+     * Important: Address must be passed in same encoding as currently set in Mailer::$CharSet.
      * This function silently returns unmodified address if:
      * - No conversion is necessary (i.e. domain name is not an IDN, or is already in ASCII form)
      * - Conversion to punycode is impossible (e.g. required PHP functions are not available)
@@ -1288,7 +1290,6 @@ class PHPMailer {
      * Create a message and send it.
      * Uses the sending method specified by $Mailer.
      *
-     * @throws phpmailerException
      * @return boolean false on error - See the ErrorInfo property for details of the error.
      */
     public function send() {
@@ -2131,7 +2132,7 @@ class PHPMailer {
             $result .= $this->headerLine('X-Priority', $this->Priority);
         }
         if ($this->XMailer == '') {
-            $result .= $this->headerLine('X-Mailer', 'PHPMailer ' . $this->Version . ' (https://github.com/PHPMailer/PHPMailer)');
+            $result .= $this->headerLine('X-Mailer', 'Mailer ' . $this->Version . ' (https://github.com/Mailer/Mailer)');
         } else {
             $myXmailer = trim($this->XMailer);
             if ($myXmailer) {
@@ -2478,7 +2479,7 @@ class PHPMailer {
 
     /**
      * Set the message type.
-     * PHPMailer only supports some preset message types,
+     * Mailer only supports some preset message types,
      * not arbitrary MIME structures.
      *
      * @access protected
@@ -2544,7 +2545,6 @@ class PHPMailer {
      *            File extension (MIME) type.
      * @param string $disposition
      *            Disposition to use
-     * @throws phpmailerException
      * @return boolean
      */
     public function addAttachment($path, $name = '', $encoding = 'base64', $type = '', $disposition = 'attachment') {
@@ -3415,8 +3415,8 @@ class PHPMailer {
             if ($key == 'smtp_connect_failed') {
                 // Include a link to troubleshooting docs on SMTP connection failure
                 // this is by far the biggest cause of support questions
-                // but it's usually not PHPMailer's fault.
-                return $this->language[$key] . ' https://github.com/PHPMailer/PHPMailer/wiki/Troubleshooting';
+                // but it's usually not Mailer's fault.
+                return $this->language[$key] . ' https://github.com/Mailer/Mailer/wiki/Troubleshooting';
             }
             return $this->language[$key];
         } else {
@@ -3895,7 +3895,6 @@ class PHPMailer {
      *
      * @access public
      * @param string $signHeader            
-     * @throws phpmailerException
      * @return string
      */
     public function DKIM_Sign($signHeader) {

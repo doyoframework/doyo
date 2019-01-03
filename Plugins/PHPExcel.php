@@ -1,5 +1,9 @@
 <?php
+
+namespace Plugins;
+
 use Core\Util;
+use PHPExcel_IOFactory;
 
 class PHPExcel
 {

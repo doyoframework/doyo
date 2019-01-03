@@ -1,4 +1,6 @@
 <?php
+namespace Plugins;
+
 use Aliyun\Core\Config;
 use Aliyun\Core\Profile\DefaultProfile;
 use Aliyun\Core\DefaultAcsClient;

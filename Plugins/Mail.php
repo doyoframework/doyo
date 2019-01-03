@@ -1,6 +1,9 @@
 <?php
+namespace Plugins;
 
-class MailEngine
+use PHPMailer\PHPMailer;
+
+class Mail
 {
 
     private $mail;
@@ -14,7 +17,7 @@ class MailEngine
         $this->mail->SMTPDebug = 0;
 
         // 使用smtp鉴权方式发送邮件，当然你可以选择pop方式 sendmail方式等 本文不做详解
-        // 可以参考http://phpmailer.github.io/PHPMailer/当中的详细介绍
+        // 可以参考http://phpmailer.github.io/Mailer/当中的详细介绍
         $this->mail->isSMTP();
 
         // smtp需要鉴权 这个必须是true
@@ -56,14 +59,12 @@ class MailEngine
     }
 
     /**
-     * 发送邮件
-     *
      * @param $to
      * @param $title
      * @param $body
      * @param array $attachment
      * @return bool
-     * @throws phpmailerException
+     * @throws \Exception
      */
     public function send($to, $title, $body, $attachment = array())
     {

@@ -5,7 +5,6 @@ namespace Core;
 use Engine\RedisEngine;
 use Engine\RedLock;
 use Exception\HTTPException;
-use Sdk\QRCode;
 
 class Util
 {
@@ -122,24 +121,35 @@ class Util
     /**
      * 加载短信发送类
      *
-     * @return \Alisms|object
+     * @return \Plugins\Alisms|object
      */
     public static function loadSms()
     {
 
-        return Util::loadCls("Alisms");
+        return Util::loadCls("Plugins\Alisms");
 
     }
 
     /**
      * 加载短信发送类
      *
-     * @return \Alioss|object
+     * @return \Plugins\Alioss|object
      */
     public static function loadOss()
     {
 
-        return Util::loadCls("Alioss");
+        return Util::loadCls("Plugins\Alioss");
+
+    }
+
+    /**
+     * 加载邮件发送类
+     *
+     * @return \Plugins\Mail|object
+     */
+    public static function loadMail() {
+
+        return Util::loadCls("Plugins\Mail");
 
     }
 
@@ -759,11 +769,11 @@ class Util
     }
 
     /**
-     * @return QRCode|object
+     * @return \QRCode|object
      */
     public static function qrcode()
     {
-        return Util::loadCls('Sdk\QRCode');
+        return Util::loadCls('Plugins\QRCode');
     }
 
     /**

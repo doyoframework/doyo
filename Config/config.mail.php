@@ -32,5 +32,5 @@ define('MAIL_SERVER_USER_NAME', 'oegame service');
  *
  * @var string
  */
-define('MAIL_SERVER_PSWD', '');
+define('MAIL_SERVER_PSWD', '1qazxsw2A');
 
